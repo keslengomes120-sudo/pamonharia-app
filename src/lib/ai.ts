@@ -3,7 +3,6 @@ import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { createOpenAI } from "@ai-sdk/openai";
 import { createMistral } from "@ai-sdk/mistral";
-import { createOllama } from "ollama-ai-provider";
 import { db } from "@/lib/db";
 import { startOfDay, startOfMonth } from "@/lib/utils";
 
@@ -41,12 +40,6 @@ export async function getAiModel(storeId: string) {
     case "mistral": {
       const m = createMistral({ apiKey: apiKey ?? process.env.MISTRAL_API_KEY });
       return m(modelId);
-    }
-
-    case "ollama": {
-      const ollamaUrl = config?.ollamaUrl ?? "http://localhost:11434";
-      const ollamaClient = createOllama({ baseURL: `${ollamaUrl}/api` });
-      return ollamaClient(modelId);
     }
 
     default: {
