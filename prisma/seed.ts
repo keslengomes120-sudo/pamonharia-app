@@ -4,8 +4,18 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaLibSql } from "@prisma/adapter-libsql";
 import bcrypt from "bcryptjs";
 
-const dbPath = path.resolve(process.cwd(), "dev.db");
-const adapter = new PrismaLibSql({ url: `file:${dbPath}` });
+function resolveDbUrl(): string {
+  const raw = process.env.DATABASE_URL ?? "file:./dev.db";
+  if (raw.startsWith("file:./")) {
+    const rel = raw.slice("file:./".length);
+    return `file:${path.resolve(process.cwd(), rel)}`;
+  }
+  return raw;
+}
+
+const url = resolveDbUrl();
+const authToken = process.env.TURSO_AUTH_TOKEN;
+const adapter = new PrismaLibSql({ url, ...(authToken ? { authToken } : {}) });
 const db = new PrismaClient({ adapter });
 
 async function main() {
