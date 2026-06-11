@@ -22,7 +22,7 @@ export default function BottomNav({ role }: { role?: string }) {
   const nav = role === "admin" ? adminNav : operadorNav;
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-gray-100 pb-safe">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 pb-safe">
       <div className="flex">
         {nav.map((item) => {
           const active = path === item.href || (item.href !== "/" && path.startsWith(item.href));
@@ -32,7 +32,9 @@ export default function BottomNav({ role }: { role?: string }) {
               href={item.href}
               className={cn(
                 "flex-1 flex flex-col items-center gap-0.5 py-3 text-xs font-medium transition-colors",
-                active ? "text-orange-600" : "text-gray-400"
+                active
+                  ? "text-orange-600 dark:text-orange-400"
+                  : "text-gray-400 dark:text-gray-500"
               )}
             >
               <span className="text-xl">{item.icon}</span>
