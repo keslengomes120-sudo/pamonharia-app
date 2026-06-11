@@ -37,7 +37,7 @@ async function getDashboardData(storeId: string) {
           return db.sale.aggregate({
             where: { storeId, status: "concluida", createdAt: { gte: from, lte: to } },
             _sum: { totalAmount: true },
-          }).then((r) => ({
+          }).then((r: { _sum: { totalAmount: number | null } }) => ({
             day: from.toLocaleDateString("pt-BR", { weekday: "short" }),
             receita: r._sum.totalAmount ?? 0,
           }));
