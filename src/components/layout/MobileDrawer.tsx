@@ -42,7 +42,7 @@ export function MobileDrawer({ storeName, role }: { storeName?: string; role?: s
 
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm" />
-        <Dialog.Content className="fixed left-0 top-0 bottom-0 z-50 w-72 bg-white dark:bg-gray-900 shadow-xl flex flex-col outline-none">
+        <Dialog.Content className="fixed right-0 top-0 bottom-0 z-50 w-72 bg-white dark:bg-gray-900 shadow-xl flex flex-col outline-none">
           <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800">
             <div className="flex items-center gap-2">
               <span className="text-2xl">🌽</span>
