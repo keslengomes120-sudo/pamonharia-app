@@ -81,9 +81,19 @@ Nunca afirme "funcionando" sem ter rodado o build de fato.
 ## Deploy
 
 - **Produção: Vercel + Turso.**
-- Banco: Turso (`DATABASE_URL="libsql://..."` + `TURSO_AUTH_TOKEN`). Em dev é `file:./dev.db`.
-- Env vars necessárias (ver `.env.example`): `DATABASE_URL`, `TURSO_AUTH_TOKEN` (prod), `NEXTAUTH_SECRET`, `NEXTAUTH_URL`.
-- Build na Vercel já roda `prisma generate` via o script `build`.
+- **Projeto Vercel:** `zumi2/pamonharia-app` (conta `zulagomes1-5007`). Preset Next.js, auto-deploy no push pra `main`.
+- **URL pública em produção:** https://pamonharia-app-ten.vercel.app
+  - ⚠️ Não confundir com `pamonharia-app.vercel.app` (sem `-ten`/`-zumi2`): é **outro projeto** (um app estático "Pamonharia DJ" em Firebase, não relacionado a este código).
+  - O alias `pamonharia-app-zumi2.vercel.app` está sob Vercel Authentication (responde 401); use o `-ten` para acesso público.
+- **Banco:** Turso, db `pamonharia` (`libsql://pamonharia-zulagomes1-cyber.aws-us-east-1.turso.io`). `DATABASE_URL` + `TURSO_AUTH_TOKEN`. Em dev é `file:./dev.db`.
+- **Env vars** (ver `.env.example`): `DATABASE_URL`, `TURSO_AUTH_TOKEN` (prod), `NEXTAUTH_SECRET`, `NEXTAUTH_URL`.
+  - Pendência conhecida: `NEXTAUTH_URL` aponta para o domínio do outro projeto; o login funciona (NextAuth v5 detecta o host), mas o ideal é apontar para a URL real ou um domínio próprio.
+- Build na Vercel roda `prisma generate` via o script `build`.
+- **Migrations em produção NÃO rodam no build.** O script `build` só faz `prisma generate && next build`. Após criar migrations com `prisma migrate dev` (que aplica no `dev.db` local), aplique cada uma no Turso manualmente, na ordem:
+  ```bash
+  turso db shell pamonharia < prisma/migrations/<nome>/migration.sql
+  ```
+  Antes de migrations destrutivas, faça backup: `turso db shell pamonharia .dump > backup.sql`.
 
 <!-- BEGIN:nextjs-agent-rules -->
 # This is NOT the Next.js you know
