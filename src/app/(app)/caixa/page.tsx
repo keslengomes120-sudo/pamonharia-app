@@ -40,12 +40,16 @@ export default function CaixaPage() {
   }
 
   async function openCash() {
+    const amount = Number(openingAmount);
+    if (openingAmount.trim() === "" || !isFinite(amount) || amount < 0) {
+      return toast.error("Informe o fundo de troco para abrir o caixa");
+    }
     setBusy(true);
     try {
       const res = await fetch("/api/cash", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ openingAmount: Number(openingAmount) || 0 }),
+        body: JSON.stringify({ openingAmount: amount }),
       });
       if (!res.ok) throw new Error();
       toast.success("Caixa aberto!");
@@ -144,7 +148,7 @@ export default function CaixaPage() {
         /* Caixa fechado — abrir */
         <div className="bg-card rounded-2xl shadow-sm border border-border p-5">
           <p className="text-muted-foreground text-sm mb-4">Nenhum caixa aberto. Informe o fundo de troco para abrir.</p>
-          <label className="text-xs font-medium text-muted-foreground">Fundo de troco (R$)</label>
+          <label className="text-xs font-medium text-muted-foreground">Fundo de troco (R$) *</label>
           <input
             type="number" step="0.01" min="0"
             value={openingAmount}
@@ -154,7 +158,7 @@ export default function CaixaPage() {
           />
           <button
             onClick={openCash}
-            disabled={busy}
+            disabled={busy || openingAmount.trim() === ""}
             className="w-full py-3 bg-primary hover:bg-primary-hover text-white rounded-xl text-sm font-semibold disabled:opacity-50"
           >
             Abrir caixa

@@ -21,3 +21,7 @@ function createDb() {
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
 export const db = globalForPrisma.prisma || createDb();
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = db;
+
+export function isUniqueCodeError(e: unknown): boolean {
+  return typeof e === "object" && e !== null && "code" in e && (e as { code: unknown }).code === "P2002";
+}

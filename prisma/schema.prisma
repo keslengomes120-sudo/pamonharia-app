@@ -141,6 +141,7 @@ model Product {
   storeId       String
   categoryId    String?
   name          String
+  internalCode  String?
   unit          String   @default("un")
   tipo          String   @default("fabricacao") // revenda | fabricacao
   purchasePrice Float    @default(0)            // custo de compra (revenda)
@@ -156,6 +157,8 @@ model Product {
   productIngredients ProductIngredient[]
   saleItems          SaleItem[]
   comandaItems       ComandaItem[]
+
+  @@unique([storeId, internalCode])
 }
 
 // ─── FICHA TÉCNICA ────────────────────────────────────────────

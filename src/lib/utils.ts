@@ -16,6 +16,10 @@ export function formatPct(value: number, decimals = 1): string {
   return `${value.toFixed(decimals)}%`;
 }
 
+export function formatQty(value: number): string {
+  return new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 3 }).format(value);
+}
+
 export function formatDate(date: string | Date): string {
   return new Intl.DateTimeFormat("pt-BR").format(
     typeof date === "string" ? new Date(date) : date

@@ -23,6 +23,7 @@ export default function PDVPage() {
   const [cashReceived, setCashReceived] = useState("");
   const [comandaId, setComandaId] = useState<string | null>(null);
   const [comandaLabel, setComandaLabel] = useState("");
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     fetch("/api/products?active=true")
@@ -59,6 +60,10 @@ export default function PDVPage() {
     if (qty <= 0) return removeFromCart(id);
     setCart((prev) => prev.map((i) => i.id === id ? { ...i, qty } : i));
   }
+
+  const filteredProducts = search.trim()
+    ? products.filter((p) => p.name.toLowerCase().includes(search.trim().toLowerCase()))
+    : products;
 
   const subtotal = cart.reduce((s, i) => s + i.salePrice * i.qty, 0);
   const total = Math.max(0, subtotal - discount);
@@ -105,8 +110,14 @@ export default function PDVPage() {
       {/* Catálogo */}
       <div className="flex-1 p-4">
         <h1 className="text-lg font-bold text-foreground mb-4">PDV — Ponto de Venda</h1>
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="🔍 Buscar produto por nome"
+          className="w-full mb-4 px-3 py-2.5 border border-border rounded-xl text-sm bg-card focus:outline-none focus:ring-2 focus:ring-ring"
+        />
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-          {products.map((p) => (
+          {filteredProducts.map((p) => (
             <button
               key={p.id}
               onClick={() => addToCart(p)}
@@ -126,11 +137,17 @@ export default function PDVPage() {
             </button>
           ))}
         </div>
-        {products.length === 0 && (
+        {filteredProducts.length === 0 && (
           <div className="text-center py-16 text-subtle">
             <p className="text-4xl mb-2">🥟</p>
-            <p>Nenhum produto cadastrado</p>
-            <a href="/produtos" className="text-primary text-sm underline mt-1 inline-block">Cadastrar produtos</a>
+            {products.length === 0 ? (
+              <>
+                <p>Nenhum produto cadastrado</p>
+                <a href="/produtos" className="text-primary text-sm underline mt-1 inline-block">Cadastrar produtos</a>
+              </>
+            ) : (
+              <p>Nenhum produto encontrado</p>
+            )}
           </div>
         )}
       </div>

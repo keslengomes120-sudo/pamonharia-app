@@ -1,16 +1,20 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type KeyboardEvent } from "react";
 import { toast } from "sonner";
-import { formatCurrency, cn } from "@/lib/utils";
+import { formatCurrency, formatQty } from "@/lib/utils";
 
-type Product = { id: string; name: string; salePrice: number };
-type LocalItem = { productId: string; qty: number; name: string; unitPrice: number };
+type Product = { id: string; name: string; salePrice: number; internalCode: string | null; unit: string };
+type LocalItem = { productId: string; qty: number; name: string; unitPrice: number; unit: string };
 type Comanda = {
   id: string; label: string; total: number;
   customer?: { name: string } | null;
   items: { productId: string; qty: number }[];
 };
 type Customer = { id: string; name: string };
+
+function round3(n: number) {
+  return Math.round(n * 1000) / 1000;
+}
 
 export default function ComandasPage() {
   const [comandas, setComandas] = useState<Comanda[]>([]);
@@ -24,6 +28,8 @@ export default function ComandasPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedLabel, setSelectedLabel] = useState("");
   const [items, setItems] = useState<LocalItem[]>([]);
+  const [codeInput, setCodeInput] = useState("");
+  const [searchComanda, setSearchComanda] = useState("");
 
   useEffect(() => { loadAll(); }, []);
 
@@ -60,7 +66,7 @@ export default function ComandasPage() {
     const c = await fetch(`/api/comandas/${id}`).then((r) => r.json());
     setSelectedId(id);
     setSelectedLabel(c.label);
-    setItems(c.items.map((i: any) => ({ productId: i.productId, qty: i.qty, name: i.product.name, unitPrice: i.unitPrice })));
+    setItems(c.items.map((i: any) => ({ productId: i.productId, qty: i.qty, name: i.product.name, unitPrice: i.unitPrice, unit: i.product.unit })));
   }
 
   async function persist(next: LocalItem[]) {
@@ -73,12 +79,45 @@ export default function ComandasPage() {
     });
   }
 
-  function addProduct(p: Product) {
+  function addProduct(p: Product, addQty = 1) {
     const existing = items.find((i) => i.productId === p.id);
     const next = existing
-      ? items.map((i) => i.productId === p.id ? { ...i, qty: i.qty + 1 } : i)
-      : [...items, { productId: p.id, qty: 1, name: p.name, unitPrice: p.salePrice }];
+      ? items.map((i) => i.productId === p.id ? { ...i, qty: round3(i.qty + addQty) } : i)
+      : [...items, { productId: p.id, qty: addQty, name: p.name, unitPrice: p.salePrice, unit: p.unit }];
     persist(next);
+  }
+
+  function addByCode(raw: string) {
+    const input = raw.trim();
+    if (!input) return;
+
+    let weight: number | null = null;
+    let code = input;
+    if (input.includes("*")) {
+      const [w, c] = input.split("*");
+      weight = parseFloat(w.replace(",", "."));
+      code = (c ?? "").trim();
+      if (!isFinite(weight) || weight <= 0) return toast.error("Peso inválido");
+    }
+
+    const p = products.find((x) => x.internalCode && x.internalCode === code);
+    if (!p) return toast.error(`Código ${code} não encontrado`);
+
+    if (p.unit === "kg") {
+      if (weight === null) return toast.error(`${p.name} é vendido por peso: use peso*${code}`);
+      addProduct(p, weight);
+    } else {
+      if (weight !== null) return toast.error(`${p.name} não é vendido por peso`);
+      addProduct(p, 1);
+    }
+  }
+
+  function handleCodeKey(e: KeyboardEvent<HTMLInputElement>) {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    if (!codeInput.trim()) return closeDetail();
+    addByCode(codeInput);
+    setCodeInput("");
   }
 
   function changeQty(productId: string, qty: number) {
@@ -109,6 +148,15 @@ export default function ComandasPage() {
 
   const total = items.reduce((s, i) => s + i.unitPrice * i.qty, 0);
 
+  const filteredComandas = searchComanda.trim()
+    ? comandas.filter((c) => c.label.toLowerCase().includes(searchComanda.trim().toLowerCase()))
+    : comandas;
+
+  function handleSearchKey(e: KeyboardEvent<HTMLInputElement>) {
+    if (e.key !== "Enter") return;
+    if (filteredComandas.length > 0) openComanda(filteredComandas[0].id);
+  }
+
   if (selectedId) {
     return (
       <div className="flex flex-col md:flex-row min-h-screen bg-muted">
@@ -117,6 +165,14 @@ export default function ComandasPage() {
             <button onClick={closeDetail} className="text-muted-foreground text-sm">← Voltar</button>
             <h1 className="text-lg font-bold text-foreground">📝 {selectedLabel}</h1>
           </div>
+          <input
+            value={codeInput}
+            onChange={(e) => setCodeInput(e.target.value)}
+            onKeyDown={handleCodeKey}
+            autoFocus
+            placeholder="Código ou peso*código (ex: 0,360*2) — Enter vazio volta"
+            className="w-full mb-4 px-3 py-2.5 border border-border rounded-xl text-sm bg-card focus:outline-none focus:ring-2 focus:ring-ring"
+          />
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
             {products.map((p) => (
               <button
@@ -125,8 +181,11 @@ export default function ComandasPage() {
                 className="bg-card rounded-2xl p-4 shadow-sm border border-border text-left active:scale-95 transition-transform hover:border-primary hover:shadow-md"
               >
                 <div className="text-3xl mb-2">🥟</div>
-                <p className="font-semibold text-foreground text-sm leading-tight">{p.name}</p>
-                <p className="text-primary font-bold mt-2">{formatCurrency(p.salePrice)}</p>
+                <p className="font-semibold text-foreground text-sm leading-tight">
+                  {p.name}
+                  {p.internalCode && <span className="ml-1 text-xs text-subtle">#{p.internalCode}</span>}
+                </p>
+                <p className="text-primary font-bold mt-2">{formatCurrency(p.salePrice)}{p.unit === "kg" && <span className="text-xs text-subtle">/kg</span>}</p>
               </button>
             ))}
           </div>
@@ -144,13 +203,20 @@ export default function ComandasPage() {
                 <div key={item.productId} className="flex items-center gap-2">
                   <div className="flex-1">
                     <p className="text-sm font-medium text-foreground">{item.name}</p>
-                    <p className="text-xs text-primary">{formatCurrency(item.unitPrice)}</p>
+                    <p className="text-xs text-primary">{formatCurrency(item.unitPrice)}{item.unit === "kg" && "/kg"}</p>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <button onClick={() => changeQty(item.productId, item.qty - 1)} className="w-7 h-7 rounded-lg bg-muted text-muted-foreground font-bold flex items-center justify-center">−</button>
-                    <span className="w-6 text-center text-sm font-semibold">{item.qty}</span>
-                    <button onClick={() => changeQty(item.productId, item.qty + 1)} className="w-7 h-7 rounded-lg bg-primary-soft text-primary-soft-foreground font-bold flex items-center justify-center">+</button>
-                  </div>
+                  {item.unit === "kg" ? (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold">{formatQty(item.qty)} kg</span>
+                      <button onClick={() => changeQty(item.productId, 0)} className="text-danger text-sm">✕</button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1">
+                      <button onClick={() => changeQty(item.productId, item.qty - 1)} className="w-7 h-7 rounded-lg bg-muted text-muted-foreground font-bold flex items-center justify-center">−</button>
+                      <span className="w-6 text-center text-sm font-semibold">{item.qty}</span>
+                      <button onClick={() => changeQty(item.productId, item.qty + 1)} className="w-7 h-7 rounded-lg bg-primary-soft text-primary-soft-foreground font-bold flex items-center justify-center">+</button>
+                    </div>
+                  )}
                   <p className="text-sm font-semibold text-foreground w-16 text-right">{formatCurrency(item.unitPrice * item.qty)}</p>
                 </div>
               ))
@@ -175,31 +241,43 @@ export default function ComandasPage() {
 
   return (
     <div className="p-4 md:p-6">
-      <div className="flex items-center justify-between mb-5">
+      <div className="flex items-center justify-between mb-4">
         <h1 className="text-xl font-bold text-foreground">📝 Comandas</h1>
         <button onClick={() => setCreating(true)} className="px-4 py-2 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-primary-hover">
           + Nova comanda
         </button>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-        {comandas.map((c) => (
+      <input
+        value={searchComanda}
+        onChange={(e) => setSearchComanda(e.target.value)}
+        onKeyDown={handleSearchKey}
+        placeholder="🔍 Abrir comanda pelo nome (Enter abre a primeira)"
+        className="w-full mb-5 px-3 py-2.5 border border-border rounded-xl text-sm bg-card focus:outline-none focus:ring-2 focus:ring-ring"
+      />
+
+      <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3">
+        {filteredComandas.map((c) => (
           <button
             key={c.id}
             onClick={() => openComanda(c.id)}
-            className="bg-card rounded-2xl p-4 shadow-sm border border-border text-left hover:border-primary hover:shadow-md transition-all"
+            className="aspect-square bg-card rounded-2xl p-3 shadow-sm border border-border flex flex-col justify-between text-left hover:border-primary hover:shadow-md transition-all"
           >
-            <p className="font-bold text-foreground">{c.label}</p>
-            {c.customer && <p className="text-xs text-subtle">{c.customer.name}</p>}
-            <p className="text-xs text-subtle mt-2">{c.items.length} {c.items.length === 1 ? "item" : "itens"}</p>
-            <p className="text-primary font-bold mt-1">{formatCurrency(c.total)}</p>
+            <div>
+              <p className="font-bold text-foreground text-sm leading-tight">{c.label}</p>
+              {c.customer && <p className="text-xs text-subtle leading-tight">{c.customer.name}</p>}
+            </div>
+            <div>
+              <p className="text-xs text-subtle">{c.items.length} {c.items.length === 1 ? "item" : "itens"}</p>
+              <p className="text-primary font-bold text-sm">{formatCurrency(c.total)}</p>
+            </div>
           </button>
         ))}
       </div>
-      {comandas.length === 0 && (
+      {filteredComandas.length === 0 && (
         <div className="text-center py-16 text-subtle">
           <p className="text-4xl mb-2">📝</p>
-          <p>Nenhuma comanda aberta</p>
+          <p>{comandas.length === 0 ? "Nenhuma comanda aberta" : "Nenhuma comanda encontrada"}</p>
         </div>
       )}
 

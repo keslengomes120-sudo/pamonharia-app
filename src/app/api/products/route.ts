@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
+import { db, isUniqueCodeError } from "@/lib/db";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -45,20 +45,30 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
 
   const tipo = body.tipo === "revenda" ? "revenda" : "fabricacao";
+  const internalCode = body.internalCode?.trim() || null;
 
-  const product = await db.product.create({
-    data: {
-      storeId,
-      name: body.name,
-      categoryId: body.categoryId ?? null,
-      unit: body.unit ?? "un",
-      tipo,
-      purchasePrice: tipo === "revenda" ? body.purchasePrice ?? 0 : 0,
-      salePrice: body.salePrice ?? 0,
-      tipoProducao: body.tipoProducao ?? "unitario",
-      active: true,
-    },
-  });
+  let product;
+  try {
+    product = await db.product.create({
+      data: {
+        storeId,
+        name: body.name,
+        internalCode,
+        categoryId: body.categoryId ?? null,
+        unit: body.unit ?? "un",
+        tipo,
+        purchasePrice: tipo === "revenda" ? body.purchasePrice ?? 0 : 0,
+        salePrice: body.salePrice ?? 0,
+        tipoProducao: body.tipoProducao ?? "unitario",
+        active: true,
+      },
+    });
+  } catch (e: unknown) {
+    if (isUniqueCodeError(e)) {
+      return NextResponse.json({ error: "Código interno já usado" }, { status: 409 });
+    }
+    throw e;
+  }
 
   if (tipo === "fabricacao" && Array.isArray(body.ingredients) && body.ingredients.length > 0) {
     await db.productIngredient.createMany({

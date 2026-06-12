@@ -5,7 +5,7 @@ import { formatCurrency, formatPct, cn } from "@/lib/utils";
 
 type Ingredient = { id: string; name: string; unit: string; costPerUnit: number };
 type Product = {
-  id: string; name: string; tipo: string; purchasePrice: number;
+  id: string; name: string; internalCode: string | null; unit: string; tipo: string; purchasePrice: number;
   salePrice: number; cost: number; margin: number;
   active: boolean; tipoProducao: string;
   category?: { name: string; color: string };
@@ -39,7 +39,7 @@ export default function ProdutosPage() {
   }
 
   function openNew() {
-    setEditing({ name: "", tipo: "fabricacao", purchasePrice: 0, salePrice: 0, tipoProducao: "unitario", active: true });
+    setEditing({ name: "", internalCode: "", unit: "un", tipo: "fabricacao", purchasePrice: 0, salePrice: 0, tipoProducao: "unitario", active: true });
     setFichaItems([]);
     setMarkup(storeMarkup);
   }
@@ -61,11 +61,14 @@ export default function ProdutosPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...editing, ingredients: fichaItems }),
       });
-      if (!res.ok) throw new Error();
+      if (!res.ok) {
+        const { error } = await res.json().catch(() => ({ error: null }));
+        throw new Error(error ?? "Erro ao salvar produto");
+      }
       toast.success(editing.id ? "Produto atualizado!" : "Produto criado!");
       setEditing(null);
       load();
-    } catch { toast.error("Erro ao salvar produto"); }
+    } catch (e) { toast.error(e instanceof Error ? e.message : "Erro ao salvar produto"); }
     finally { setSaving(false); }
   }
 
@@ -108,7 +111,11 @@ export default function ProdutosPage() {
             <tbody className="divide-y divide-border">
               {products.map((p) => (
                 <tr key={p.id} className={cn("hover:bg-muted", !p.active && "opacity-50")}>
-                  <td className="px-4 py-3 font-medium text-foreground">{p.name}</td>
+                  <td className="px-4 py-3 font-medium text-foreground">
+                    {p.name}
+                    {p.internalCode && <span className="ml-2 text-xs text-subtle">#{p.internalCode}</span>}
+                    {p.unit === "kg" && <span className="ml-1 text-xs text-subtle">/kg</span>}
+                  </td>
                   <td className="px-4 py-3 text-primary font-semibold">{formatCurrency(p.salePrice)}</td>
                   <td className="px-4 py-3 text-muted-foreground">{formatCurrency(p.cost)}</td>
                   <td className="px-4 py-3">
@@ -177,6 +184,29 @@ export default function ProdutosPage() {
                   className="w-full mt-1 px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                   placeholder="Ex: Pamonha Doce"
                 />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground">Código interno</label>
+                  <input
+                    value={editing.internalCode ?? ""}
+                    onChange={(e) => setEditing({ ...editing, internalCode: e.target.value })}
+                    className="w-full mt-1 px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                    placeholder="Ex: 2"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground">Unidade</label>
+                  <select
+                    value={editing.unit ?? "un"}
+                    onChange={(e) => setEditing({ ...editing, unit: e.target.value })}
+                    className="w-full mt-1 px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  >
+                    <option value="un">Unidade (un)</option>
+                    <option value="kg">Peso (kg)</option>
+                  </select>
+                </div>
               </div>
 
               {isRevenda && (

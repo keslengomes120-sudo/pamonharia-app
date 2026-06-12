@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
+import { db, isUniqueCodeError } from "@/lib/db";
 
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -35,20 +35,30 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const body = await req.json();
 
   const tipo = body.tipo === "revenda" ? "revenda" : "fabricacao";
+  const internalCode = body.internalCode?.trim() || null;
 
-  const product = await db.product.update({
-    where: { id },
-    data: {
-      name: body.name,
-      categoryId: body.categoryId ?? null,
-      unit: body.unit,
-      tipo,
-      purchasePrice: tipo === "revenda" ? body.purchasePrice ?? 0 : 0,
-      salePrice: body.salePrice,
-      tipoProducao: body.tipoProducao,
-      active: body.active,
-    },
-  });
+  let product;
+  try {
+    product = await db.product.update({
+      where: { id },
+      data: {
+        name: body.name,
+        internalCode,
+        categoryId: body.categoryId ?? null,
+        unit: body.unit,
+        tipo,
+        purchasePrice: tipo === "revenda" ? body.purchasePrice ?? 0 : 0,
+        salePrice: body.salePrice,
+        tipoProducao: body.tipoProducao,
+        active: body.active,
+      },
+    });
+  } catch (e: unknown) {
+    if (isUniqueCodeError(e)) {
+      return NextResponse.json({ error: "Código interno já usado" }, { status: 409 });
+    }
+    throw e;
+  }
 
   // Ficha técnica só existe em fabricação própria
   await db.productIngredient.deleteMany({ where: { productId: id } });
