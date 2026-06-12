@@ -4,8 +4,9 @@ import { toast } from "sonner";
 import { formatCurrency, formatPct, cn } from "@/lib/utils";
 
 type Ingredient = { id: string; name: string; unit: string; costPerUnit: number };
+type Category = { id: string; name: string };
 type Product = {
-  id: string; name: string; internalCode: string | null; unit: string; tipo: string; purchasePrice: number;
+  id: string; name: string; internalCode: string | null; categoryId: string | null; unit: string; tipo: string; purchasePrice: number;
   salePrice: number; cost: number; margin: number;
   active: boolean; tipoProducao: string;
   category?: { name: string; color: string };
@@ -19,6 +20,7 @@ function round2(n: number) {
 export default function ProdutosPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [storeMarkup, setStoreMarkup] = useState(70);
   const [editing, setEditing] = useState<Partial<Product> | null>(null);
   const [fichaItems, setFichaItems] = useState<{ ingredientId: string; qtyPerUnit: number }[]>([]);
@@ -28,18 +30,20 @@ export default function ProdutosPage() {
   useEffect(() => { load(); }, []);
 
   async function load() {
-    const [p, i, s] = await Promise.all([
+    const [p, i, c, s] = await Promise.all([
       fetch("/api/products").then((r) => r.json()),
       fetch("/api/ingredients").then((r) => r.json()),
+      fetch("/api/categories").then((r) => r.json()),
       fetch("/api/settings/store").then((r) => r.json()),
     ]);
     setProducts(p);
     setIngredients(i);
+    if (Array.isArray(c)) setCategories(c);
     if (typeof s?.defaultMarkup === "number") setStoreMarkup(s.defaultMarkup);
   }
 
   function openNew() {
-    setEditing({ name: "", internalCode: "", unit: "un", tipo: "fabricacao", purchasePrice: 0, salePrice: 0, tipoProducao: "unitario", active: true });
+    setEditing({ name: "", internalCode: "", categoryId: "", unit: "un", tipo: "fabricacao", purchasePrice: 0, salePrice: 0, tipoProducao: "unitario", active: true });
     setFichaItems([]);
     setMarkup(storeMarkup);
   }
@@ -52,6 +56,7 @@ export default function ProdutosPage() {
 
   async function save() {
     if (!editing?.name) return toast.error("Nome obrigatório");
+    if (!editing.categoryId) return toast.error("Selecione uma categoria");
     setSaving(true);
     try {
       const method = editing.id ? "PUT" : "POST";
@@ -184,6 +189,25 @@ export default function ProdutosPage() {
                   className="w-full mt-1 px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                   placeholder="Ex: Pamonha Doce"
                 />
+              </div>
+
+              <div>
+                <label className="text-xs font-medium text-muted-foreground">Categoria *</label>
+                <select
+                  value={editing.categoryId ?? ""}
+                  onChange={(e) => setEditing({ ...editing, categoryId: e.target.value })}
+                  className="w-full mt-1 px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                >
+                  <option value="">Selecione uma categoria</option>
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+                {categories.length === 0 && (
+                  <a href="/categorias" className="text-primary text-xs underline mt-1 inline-block">
+                    Nenhuma categoria — cadastrar
+                  </a>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-3">

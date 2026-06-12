@@ -48,6 +48,7 @@ model User {
   email     String   @unique
   password  String?
   role      String   @default("operador")
+  permissions String? // JSON array of allowed nav hrefs (non-admin); admin sees all
   active    Boolean  @default(true)
   storeId   String?
   createdAt DateTime @default(now())

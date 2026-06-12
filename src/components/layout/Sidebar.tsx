@@ -5,12 +5,12 @@ import { signOut } from "next-auth/react";
 import { LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "./ThemeToggle";
-import { nav } from "./nav";
+import { visibleNav } from "./nav";
 
-export default function Sidebar({ storeName, role }: { storeName?: string; role?: string }) {
+export default function Sidebar({ storeName, role, permissions }: { storeName?: string; role?: string; permissions?: string[] | null }) {
   const path = usePathname();
   const isAdmin = role === "admin";
-  const visible = nav.filter((item) => !item.adminOnly || isAdmin);
+  const visible = visibleNav(role ?? "operador", permissions ?? null);
 
   return (
     <aside className="hidden md:flex flex-col w-60 bg-card border-r border-border min-h-screen fixed left-0 top-0 z-30">
@@ -49,7 +49,7 @@ export default function Sidebar({ storeName, role }: { storeName?: string; role?
 
       <div className="p-3 border-t border-border">
         {!isAdmin && (
-          <p className="text-[10px] text-subtle px-3 mb-2">Operador</p>
+          <p className="text-[10px] text-subtle px-3 mb-2">Usuário</p>
         )}
         <button
           onClick={() => signOut({ callbackUrl: "/login" })}

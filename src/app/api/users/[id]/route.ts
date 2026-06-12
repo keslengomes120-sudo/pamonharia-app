@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { serializePermissions } from "../route";
 import bcrypt from "bcryptjs";
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -14,6 +15,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const data: any = {
     name: body.name,
     role: body.role,
+    permissions: serializePermissions(body.role, body.permissions),
     active: body.active,
   };
 
@@ -24,7 +26,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const user = await db.user.update({
     where: { id },
     data,
-    select: { id: true, name: true, email: true, role: true, active: true },
+    select: { id: true, name: true, email: true, role: true, permissions: true, active: true },
   });
 
   return NextResponse.json(user);

@@ -6,11 +6,12 @@ PDV + gestão para pamonharia/loja de comida. Sistema **em uso real** (dados de 
 
 ## Funcionalidades
 
-- **PDV** — frente de caixa, baixa estoque automática, carrega comanda via `?comanda=<id>`.
-- **Comandas** — pedidos abertos por mesa/cliente; enviam para o caixa.
+- **PDV** — frente de caixa, baixa estoque automática, carrega comanda via `?comanda=<id>`. Código rápido aceita `código` ou `peso*código` (ex: `0,870*2`).
+- **Comandas** — pedidos abertos por mesa/cliente; **Colocar na comanda** (mantém aberta) ou **Enviar pro caixa**.
 - **Caixa** — abertura, sangria/suprimento e fechamento cego.
-- **Produtos** — revenda ou fabricação própria (ficha técnica → custo), precificação por markup.
-- **Categorias, Estoque, CMV, Financeiro, Produção, Clientes, Usuários, Configurações.**
+- **Produtos** — revenda ou fabricação própria (ficha técnica → custo), precificação por markup, categoria obrigatória.
+- **Usuários** — admin vê tudo; usuário comum vê só os módulos liberados (permissões por módulo).
+- **Categorias, Estoque, CMV, Financeiro, Produção, Clientes, Configurações.**
 - **IA** — assistente de negócio com contexto da loja (provider configurável).
 
 ## Stack

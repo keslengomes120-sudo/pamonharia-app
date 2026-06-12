@@ -6,10 +6,10 @@ Nome do produto: **Crescer Estratégico** (o repositório/pacote ainda se chama 
 
 PDV + gestão para uma loja de pamonha/comida. Funcionalidades:
 
-- **PDV** (`/pdv`) — frente de caixa, registra vendas e baixa estoque automaticamente. Aceita carregar uma comanda via `?comanda=<id>`.
-- **Comandas** (`/comandas`) — pedidos abertos por mesa/cliente; ao enviar pro caixa, abre o PDV já com os itens. A venda finaliza a comanda.
+- **PDV** (`/pdv`) — frente de caixa, registra vendas e baixa estoque automaticamente. Aceita carregar uma comanda via `?comanda=<id>`. Campo de código rápido aceita `código` (produto unitário) ou `peso*código` (produto por peso, ex: `0,870*2` = 0,870 kg do produto código 2); Enter adiciona ao carrinho.
+- **Comandas** (`/comandas`) — pedidos abertos por mesa/cliente. Mesmo campo de código rápido (`peso*código`). Dois caminhos ao finalizar a edição: **Colocar na comanda** (salva e volta para a lista, comanda segue aberta) ou **Enviar pro caixa** (abre o PDV já com os itens; a venda finaliza a comanda).
 - **Caixa** (`/caixa`) — abertura (fundo de troco), sangria/suprimento e fechamento cego (operador conta os valores por método; o sistema confere com o registrado e mostra a diferença).
-- **Produtos** (`/produtos`) — dois tipos: **revenda** (preço de compra + venda) e **fabricação própria** (ficha técnica de insumos → custo). Precificação automática por markup (botão "Sugerir preço").
+- **Produtos** (`/produtos`) — dois tipos: **revenda** (preço de compra + venda) e **fabricação própria** (ficha técnica de insumos → custo). Precificação automática por markup (botão "Sugerir preço"). **Categoria é obrigatória** ao salvar.
 - **Categorias** (`/categorias`) — grupos coloridos de produtos.
 - **Estoque** (`/estoque`) — insumos, saldo, mínimo e movimentações (entrada/saída/perda/ajuste).
 - **CMV** (`/cmv`) — análise de Custo de Mercadoria Vendida por período/produto.
@@ -17,7 +17,7 @@ PDV + gestão para uma loja de pamonha/comida. Funcionalidades:
 - **Produção** (`/producao`) — simulação de custo por quantidade.
 - **Clientes** (`/clientes`) — cadastro e pontos.
 - **IA** (`/ia`) — assistente de negócio com contexto da loja; provider configurável.
-- **Usuários** (`/usuarios`) — gestão de acesso (`admin` / `operador`).
+- **Usuários** (`/usuarios`) — gestão de acesso. **Admin** vê tudo; **usuário comum** (`role` ≠ `admin`) vê só os módulos que o admin liberar (checklist de permissões granulares por módulo, salvo em `User.permissions` como JSON de hrefs).
 - **Configurações** (`/configuracoes`) — escolha de provider/modelo de IA por loja.
 
 ## Stack
@@ -50,6 +50,7 @@ Login demo (seed): `admin@pamonharia.com` / `admin123`.
 - **Rotas protegidas** ficam sob o grupo `src/app/(app)/` — o layout desse grupo faz o guard de auth e renderiza Sidebar (desktop) / MobileHeader + MobileDrawer (mobile). `/login` fica fora do grupo.
 - **Páginas** são Server Components que buscam dados direto (ex: dashboard usa `lib/cmv`); interações ricas ficam em Client Components (`"use client"`).
 - **API REST** em `src/app/api/*/route.ts`. Toda rota valida `auth()`; rotas admin checam `role === "admin"`. `storeId` vem da sessão (`session.user.storeId`) — multi-tenant por loja.
+- **Permissões de navegação:** `src/components/layout/nav.ts` é a fonte única. `visibleNav(role, permissions)` decide o que aparece na Sidebar/Drawer — admin vê tudo, usuário comum vê só os hrefs em `permissions` (ou `DEFAULT_PERMISSIONS` se nulo). `grantableNav` é o conjunto que o admin pode liberar (exclui Dashboard, Usuários e Configurações). `permissions` trafega na sessão (JWT) e é parseado por `parsePermissions`. É filtro de **visibilidade** no menu, não guard de rota — o enforcement real continua nas APIs por `auth()`/`role`.
 - **lib/**: `auth.ts` (config NextAuth), `db.ts` (Prisma singleton + adapter LibSQL), `utils.ts` (formatação pt-BR, datas, `cn`), `cmv.ts` (custo de produto, CMV por período/produto), `ai.ts` (init do modelo, contexto da loja, `askAi`), `ai-providers.ts` (catálogo de providers/modelos).
 - **Estrutura de pastas é por responsabilidade.** Componentes em `src/components/{layout,dashboard,providers}`. Não crie pastas vazias "para depois".
 

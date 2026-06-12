@@ -132,6 +132,12 @@ export default function ComandasPage() {
     window.location.href = `/pdv?comanda=${selectedId}`;
   }
 
+  function keepInComanda() {
+    toast.success("Itens salvos na comanda");
+    closeDetail();
+    loadAll();
+  }
+
   async function cancelComanda() {
     if (!selectedId) return;
     if (!confirm("Cancelar esta comanda?")) return;
@@ -227,6 +233,9 @@ export default function ComandasPage() {
               <span className="text-sm text-muted-foreground">Total</span>
               <span className="text-2xl font-bold text-primary">{formatCurrency(total)}</span>
             </div>
+            <button onClick={keepInComanda} className="w-full py-3 border border-primary text-primary font-semibold rounded-2xl hover:bg-primary-soft">
+              📋 Colocar na comanda
+            </button>
             <button onClick={sendToCheckout} className="w-full py-4 bg-primary hover:bg-primary-hover text-white font-bold rounded-2xl">
               💰 Enviar pro caixa
             </button>

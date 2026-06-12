@@ -7,13 +7,13 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { Menu, X, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "./ThemeToggle";
-import { nav } from "./nav";
+import { visibleNav } from "./nav";
 
-export function MobileDrawer({ storeName, role }: { storeName?: string; role?: string }) {
+export function MobileDrawer({ storeName, role, permissions }: { storeName?: string; role?: string; permissions?: string[] | null }) {
   const [open, setOpen] = useState(false);
   const path = usePathname();
   const isAdmin = role === "admin";
-  const visible = nav.filter((item) => !item.adminOnly || isAdmin);
+  const visible = visibleNav(role ?? "operador", permissions ?? null);
 
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
@@ -74,7 +74,7 @@ export function MobileDrawer({ storeName, role }: { storeName?: string; role?: s
 
           <div className="p-3 border-t border-border">
             {!isAdmin && (
-              <p className="text-[10px] text-subtle px-3 mb-2">Operador</p>
+              <p className="text-[10px] text-subtle px-3 mb-2">Usuário</p>
             )}
             <button
               onClick={() => signOut({ callbackUrl: "/login" })}

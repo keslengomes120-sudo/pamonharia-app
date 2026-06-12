@@ -11,7 +11,7 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ id: st
     where: { id },
     include: {
       customer: { select: { name: true } },
-      items: { include: { product: { select: { name: true, salePrice: true, unit: true } } } },
+      items: { include: { product: { select: { name: true, salePrice: true, unit: true, internalCode: true } } } },
     },
   });
 

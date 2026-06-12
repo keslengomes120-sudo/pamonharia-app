@@ -1,10 +1,14 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type KeyboardEvent } from "react";
 import { toast } from "sonner";
-import { formatCurrency, cn } from "@/lib/utils";
+import { formatCurrency, formatQty, cn } from "@/lib/utils";
 
-type Product = { id: string; name: string; salePrice: number; category?: { name: string; color: string }; cost: number };
+type Product = { id: string; name: string; salePrice: number; internalCode: string | null; unit: string; category?: { name: string; color: string }; cost: number };
 type CartItem = Product & { qty: number };
+
+function round3(n: number) {
+  return Math.round(n * 1000) / 1000;
+}
 
 const PAYMENT_METHODS = [
   { id: "dinheiro", label: "Dinheiro", icon: "💵" },
@@ -24,6 +28,7 @@ export default function PDVPage() {
   const [comandaId, setComandaId] = useState<string | null>(null);
   const [comandaLabel, setComandaLabel] = useState("");
   const [search, setSearch] = useState("");
+  const [codeInput, setCodeInput] = useState("");
 
   useEffect(() => {
     fetch("/api/products?active=true")
@@ -40,15 +45,16 @@ export default function PDVPage() {
     setComandaId(id);
     setComandaLabel(c.label);
     setCart(c.items.map((i: any) => ({
-      id: i.productId, name: i.product.name, salePrice: i.unitPrice, cost: 0, qty: i.qty,
+      id: i.productId, name: i.product.name, salePrice: i.unitPrice, internalCode: i.product.internalCode,
+      unit: i.product.unit, cost: 0, qty: i.qty,
     })));
   }
 
-  function addToCart(product: Product) {
+  function addToCart(product: Product, addQty = 1) {
     setCart((prev) => {
       const existing = prev.find((i) => i.id === product.id);
-      if (existing) return prev.map((i) => i.id === product.id ? { ...i, qty: i.qty + 1 } : i);
-      return [...prev, { ...product, qty: 1 }];
+      if (existing) return prev.map((i) => i.id === product.id ? { ...i, qty: round3(i.qty + addQty) } : i);
+      return [...prev, { ...product, qty: addQty }];
     });
   }
 
@@ -59,6 +65,39 @@ export default function PDVPage() {
   function updateQty(id: string, qty: number) {
     if (qty <= 0) return removeFromCart(id);
     setCart((prev) => prev.map((i) => i.id === id ? { ...i, qty } : i));
+  }
+
+  function addByCode(raw: string) {
+    const input = raw.trim();
+    if (!input) return;
+
+    let weight: number | null = null;
+    let code = input;
+    if (input.includes("*")) {
+      const [w, c] = input.split("*");
+      weight = parseFloat(w.replace(",", "."));
+      code = (c ?? "").trim();
+      if (!isFinite(weight) || weight <= 0) return toast.error("Peso inválido");
+    }
+
+    const p = products.find((x) => x.internalCode && x.internalCode === code);
+    if (!p) return toast.error(`Código ${code} não encontrado`);
+
+    if (p.unit === "kg") {
+      if (weight === null) return toast.error(`${p.name} é vendido por peso: use peso*${code}`);
+      addToCart(p, weight);
+    } else {
+      if (weight !== null) return toast.error(`${p.name} não é vendido por peso`);
+      addToCart(p, 1);
+    }
+  }
+
+  function handleCodeKey(e: KeyboardEvent<HTMLInputElement>) {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    if (!codeInput.trim()) return;
+    addByCode(codeInput);
+    setCodeInput("");
   }
 
   const filteredProducts = search.trim()
@@ -93,6 +132,7 @@ export default function PDVPage() {
       setCart([]);
       setDiscount(0);
       setCashReceived("");
+      setCodeInput("");
       if (comandaId) {
         setComandaId(null);
         setComandaLabel("");
@@ -111,6 +151,13 @@ export default function PDVPage() {
       <div className="flex-1 p-4">
         <h1 className="text-lg font-bold text-foreground mb-4">PDV — Ponto de Venda</h1>
         <input
+          value={codeInput}
+          onChange={(e) => setCodeInput(e.target.value)}
+          onKeyDown={handleCodeKey}
+          placeholder="Código ou peso*código (ex: 0,870*2) — Enter adiciona"
+          className="w-full mb-2 px-3 py-2.5 border border-border rounded-xl text-sm bg-card focus:outline-none focus:ring-2 focus:ring-ring"
+        />
+        <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="🔍 Buscar produto por nome"
@@ -124,7 +171,10 @@ export default function PDVPage() {
               className="bg-card rounded-2xl p-4 shadow-sm border border-border text-left active:scale-95 transition-transform hover:border-primary hover:shadow-md"
             >
               <div className="text-3xl mb-2">🥟</div>
-              <p className="font-semibold text-foreground text-sm leading-tight">{p.name}</p>
+              <p className="font-semibold text-foreground text-sm leading-tight">
+                {p.name}
+                {p.internalCode && <span className="ml-1 text-xs text-subtle">#{p.internalCode}</span>}
+              </p>
               {p.category && (
                 <span
                   className="text-[10px] px-1.5 py-0.5 rounded-full font-medium mt-1 inline-block"
@@ -133,7 +183,7 @@ export default function PDVPage() {
                   {p.category.name}
                 </span>
               )}
-              <p className="text-primary font-bold mt-2">{formatCurrency(p.salePrice)}</p>
+              <p className="text-primary font-bold mt-2">{formatCurrency(p.salePrice)}{p.unit === "kg" && <span className="text-xs text-subtle">/kg</span>}</p>
             </button>
           ))}
         </div>
@@ -172,19 +222,26 @@ export default function PDVPage() {
               <div key={item.id} className="flex items-center gap-2">
                 <div className="flex-1">
                   <p className="text-sm font-medium text-foreground">{item.name}</p>
-                  <p className="text-xs text-primary">{formatCurrency(item.salePrice)}</p>
+                  <p className="text-xs text-primary">{formatCurrency(item.salePrice)}{item.unit === "kg" && "/kg"}</p>
                 </div>
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => updateQty(item.id, item.qty - 1)}
-                    className="w-7 h-7 rounded-lg bg-muted text-muted-foreground font-bold text-base flex items-center justify-center active:bg-muted"
-                  >−</button>
-                  <span className="w-6 text-center text-sm font-semibold">{item.qty}</span>
-                  <button
-                    onClick={() => updateQty(item.id, item.qty + 1)}
-                    className="w-7 h-7 rounded-lg bg-primary-soft text-primary-soft-foreground font-bold text-base flex items-center justify-center active:opacity-80"
-                  >+</button>
-                </div>
+                {item.unit === "kg" ? (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold">{formatQty(item.qty)} kg</span>
+                    <button onClick={() => removeFromCart(item.id)} className="text-danger text-sm">✕</button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => updateQty(item.id, item.qty - 1)}
+                      className="w-7 h-7 rounded-lg bg-muted text-muted-foreground font-bold text-base flex items-center justify-center active:bg-muted"
+                    >−</button>
+                    <span className="w-6 text-center text-sm font-semibold">{item.qty}</span>
+                    <button
+                      onClick={() => updateQty(item.id, item.qty + 1)}
+                      className="w-7 h-7 rounded-lg bg-primary-soft text-primary-soft-foreground font-bold text-base flex items-center justify-center active:opacity-80"
+                    >+</button>
+                  </div>
+                )}
                 <p className="text-sm font-semibold text-foreground w-16 text-right">
                   {formatCurrency(item.salePrice * item.qty)}
                 </p>
