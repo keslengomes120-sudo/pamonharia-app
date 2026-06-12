@@ -13,7 +13,7 @@ export default function Sidebar({ storeName, role, permissions }: { storeName?: 
   const visible = visibleNav(role ?? "operador", permissions ?? null);
 
   return (
-    <aside className="hidden md:flex flex-col w-60 bg-card border-r border-border min-h-screen fixed left-0 top-0 z-30">
+    <aside className="hidden md:flex flex-col w-60 bg-card border-r border-border h-screen fixed left-0 top-0 z-30">
       <div className="p-5 border-b border-border flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-2xl">🌽</span>
