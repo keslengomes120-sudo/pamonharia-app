@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { startOfDay, startOfMonth } from "@/lib/utils";
+import { getOpenSession } from "@/lib/cash";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -34,7 +35,7 @@ export async function POST(req: NextRequest) {
   const userId = (session.user as any).id;
   const body = await req.json();
 
-  const { items, paymentMethod, discount = 0, customerId, notes } = body;
+  const { items, paymentMethod, discount = 0, customerId, notes, comandaId } = body;
 
   if (!items?.length) {
     return NextResponse.json({ error: "items required" }, { status: 400 });
@@ -57,10 +58,13 @@ export async function POST(req: NextRequest) {
   const saleItems = items.map((item: any) => {
     const product = productMap[item.productId];
     const unitPrice = item.unitPrice ?? product.salePrice;
-    const unitCost = product.productIngredients.reduce(
-      (s: number, pi: any) => s + pi.qtyPerUnit * pi.ingredient.costPerUnit,
-      0
-    );
+    const unitCost =
+      product.tipo === "revenda"
+        ? product.purchasePrice
+        : product.productIngredients.reduce(
+            (s: number, pi: any) => s + pi.qtyPerUnit * pi.ingredient.costPerUnit,
+            0
+          );
     const subtotal = unitPrice * item.qty;
     const costTotal = unitCost * item.qty;
     totalAmount += subtotal;
@@ -71,6 +75,8 @@ export async function POST(req: NextRequest) {
   totalAmount = Math.max(0, totalAmount - discount);
   const cmvPct = totalAmount ? (totalCost / totalAmount) * 100 : 0;
 
+  const openSession = await getOpenSession(storeId);
+
   // Cria venda + itens + baixa estoque — tudo em transação atômica
   const sale = await db.$transaction(async (tx) => {
     const s = await tx.sale.create({
@@ -78,6 +84,7 @@ export async function POST(req: NextRequest) {
         storeId,
         userId,
         customerId: customerId ?? null,
+        cashSessionId: openSession?.id ?? null,
         totalAmount,
         totalCost,
         cmvPct,
@@ -108,6 +115,13 @@ export async function POST(req: NextRequest) {
           });
         }
       }
+    }
+
+    if (comandaId) {
+      await tx.comanda.update({
+        where: { id: comandaId },
+        data: { status: "finalizada", closedAt: new Date() },
+      });
     }
 
     return s;

@@ -23,10 +23,13 @@ export async function GET(req: NextRequest) {
   });
 
   const withCost = products.map((p) => {
-    const cost = p.productIngredients.reduce(
-      (s, pi) => s + pi.qtyPerUnit * pi.ingredient.costPerUnit,
-      0
-    );
+    const cost =
+      p.tipo === "revenda"
+        ? p.purchasePrice
+        : p.productIngredients.reduce(
+            (s, pi) => s + pi.qtyPerUnit * pi.ingredient.costPerUnit,
+            0
+          );
     const margin = p.salePrice ? ((p.salePrice - cost) / p.salePrice) * 100 : 0;
     return { ...p, cost, margin };
   });
@@ -41,19 +44,23 @@ export async function POST(req: NextRequest) {
   const storeId = (session.user as any).storeId;
   const body = await req.json();
 
+  const tipo = body.tipo === "revenda" ? "revenda" : "fabricacao";
+
   const product = await db.product.create({
     data: {
       storeId,
       name: body.name,
       categoryId: body.categoryId ?? null,
       unit: body.unit ?? "un",
+      tipo,
+      purchasePrice: tipo === "revenda" ? body.purchasePrice ?? 0 : 0,
       salePrice: body.salePrice ?? 0,
       tipoProducao: body.tipoProducao ?? "unitario",
       active: true,
     },
   });
 
-  if (Array.isArray(body.ingredients) && body.ingredients.length > 0) {
+  if (tipo === "fabricacao" && Array.isArray(body.ingredients) && body.ingredients.length > 0) {
     await db.productIngredient.createMany({
       data: body.ingredients
         .filter((i: { ingredientId: string; qtyPerUnit: number }) => i.ingredientId)

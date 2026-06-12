@@ -6,7 +6,6 @@ import { formatCurrency, cn } from "@/lib/utils";
 type Ingredient = {
   id: string; name: string; unit: string; stockQty: number;
   minStock: number; costPerUnit: number; isLow: boolean; isCritical: boolean;
-  supplier?: { name: string };
 };
 
 const UNITS = ["kg", "g", "L", "mL", "un", "pacote", "cx", "dz"];

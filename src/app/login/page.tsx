@@ -31,7 +31,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm bg-white rounded-2xl shadow-lg p-8">
         <div className="text-center mb-8">
           <div className="text-5xl mb-3">🌽</div>
-          <h1 className="text-2xl font-bold text-gray-900">Pamonharia App</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Crescer Estratégico</h1>
           <p className="text-gray-500 text-sm mt-1">Gestão da sua loja</p>
         </div>
 

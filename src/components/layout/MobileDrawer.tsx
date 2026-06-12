@@ -6,23 +6,7 @@ import { signOut } from "next-auth/react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "./ThemeToggle";
-
-type NavItem = { href: string; icon: string; label: string; adminOnly?: boolean };
-
-const nav: NavItem[] = [
-  { href: "/", icon: "📊", label: "Dashboard" },
-  { href: "/pdv", icon: "💰", label: "PDV" },
-  { href: "/producao", icon: "🥟", label: "Produção" },
-  { href: "/produtos", icon: "📋", label: "Produtos", adminOnly: true },
-  { href: "/categorias", icon: "🏷️", label: "Categorias", adminOnly: true },
-  { href: "/estoque", icon: "📦", label: "Estoque", adminOnly: true },
-  { href: "/cmv", icon: "📈", label: "CMV", adminOnly: true },
-  { href: "/financeiro", icon: "💵", label: "Financeiro", adminOnly: true },
-  { href: "/clientes", icon: "👥", label: "Clientes", adminOnly: true },
-  { href: "/ia", icon: "🤖", label: "Assistente IA" },
-  { href: "/usuarios", icon: "🧑‍💼", label: "Usuários", adminOnly: true },
-  { href: "/configuracoes", icon: "⚙️", label: "Configurações", adminOnly: true },
-];
+import { nav } from "./nav";
 
 export function MobileDrawer({ storeName, role }: { storeName?: string; role?: string }) {
   const [open, setOpen] = useState(false);
@@ -47,7 +31,7 @@ export function MobileDrawer({ storeName, role }: { storeName?: string; role?: s
             <div className="flex items-center gap-2">
               <span className="text-2xl">🌽</span>
               <div>
-                <p className="font-bold text-sm text-gray-900 dark:text-gray-100">Pamonharia App</p>
+                <p className="font-bold text-sm text-gray-900 dark:text-gray-100">Crescer Estratégico</p>
                 <p className="text-xs text-gray-400 truncate max-w-[160px]">{storeName ?? "Minha loja"}</p>
               </div>
             </div>

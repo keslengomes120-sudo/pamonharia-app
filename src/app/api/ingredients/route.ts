@@ -12,7 +12,6 @@ export async function GET(req: NextRequest) {
 
   const ingredients = await db.ingredient.findMany({
     where: { storeId },
-    include: { supplier: true },
     orderBy: { name: "asc" },
   });
 
@@ -40,7 +39,6 @@ export async function POST(req: NextRequest) {
       stockQty: body.stockQty ?? 0,
       minStock: body.minStock ?? 0,
       costPerUnit: body.costPerUnit ?? 0,
-      supplierId: body.supplierId ?? null,
     },
   });
 

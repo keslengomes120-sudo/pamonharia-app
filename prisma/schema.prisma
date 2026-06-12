@@ -58,7 +58,9 @@ model User {
   sales          Sale[]
   expenses       Expense[]
   stockMovements StockMovement[]
-  productions    Production[]
+  cashSessions   CashSession[]
+  cashMovements  CashMovement[]
+  comandas       Comanda[]
   aiChats        AiChat[]
 }
 
@@ -81,13 +83,13 @@ model Store {
   categories  Category[]
   ingredients Ingredient[]
   products    Product[]
-  sales       Sale[]
-  expenses    Expense[]
-  customers   Customer[]
-  suppliers   Supplier[]
-  productions Production[]
-  aiConfig    AiConfig?
-  aiChats     AiChat[]
+  sales        Sale[]
+  expenses     Expense[]
+  customers    Customer[]
+  cashSessions CashSession[]
+  comandas     Comanda[]
+  aiConfig     AiConfig?
+  aiChats      AiChat[]
 }
 
 // ─── CATEGORIAS ───────────────────────────────────────────────
@@ -100,25 +102,10 @@ model Category {
   products Product[]
 }
 
-// ─── FORNECEDORES ─────────────────────────────────────────────
-model Supplier {
-  id          String       @id @default(cuid())
-  storeId     String
-  name        String
-  cnpj        String?
-  phone       String?
-  email       String?
-  notes       String?
-  createdAt   DateTime     @default(now())
-  store       Store        @relation(fields: [storeId], references: [id], onDelete: Cascade)
-  ingredients Ingredient[]
-}
-
 // ─── INSUMOS / ESTOQUE ────────────────────────────────────────
 model Ingredient {
   id          String   @id @default(cuid())
   storeId     String
-  supplierId  String?
   name        String
   unit        String   @default("kg")
   stockQty    Float    @default(0)
@@ -128,7 +115,6 @@ model Ingredient {
   updatedAt   DateTime @updatedAt
 
   store              Store               @relation(fields: [storeId], references: [id], onDelete: Cascade)
-  supplier           Supplier?           @relation(fields: [supplierId], references: [id])
   stockMovements     StockMovement[]
   productIngredients ProductIngredient[]
 }
@@ -151,23 +137,25 @@ model StockMovement {
 
 // ─── PRODUTOS ─────────────────────────────────────────────────
 model Product {
-  id           String   @id @default(cuid())
-  storeId      String
-  categoryId   String?
-  name         String
-  unit         String   @default("un")
-  salePrice    Float    @default(0)
-  imageUrl     String?
-  tipoProducao String   @default("unitario")
-  active       Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id            String   @id @default(cuid())
+  storeId       String
+  categoryId    String?
+  name          String
+  unit          String   @default("un")
+  tipo          String   @default("fabricacao") // revenda | fabricacao
+  purchasePrice Float    @default(0)            // custo de compra (revenda)
+  salePrice     Float    @default(0)
+  imageUrl      String?
+  tipoProducao  String   @default("unitario")
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   store              Store               @relation(fields: [storeId], references: [id], onDelete: Cascade)
   category           Category?           @relation(fields: [categoryId], references: [id])
   productIngredients ProductIngredient[]
   saleItems          SaleItem[]
-  productionItems    ProductionItem[]
+  comandaItems       ComandaItem[]
 }
 
 // ─── FICHA TÉCNICA ────────────────────────────────────────────
@@ -194,8 +182,9 @@ model Customer {
   points    Int      @default(0)
   createdAt DateTime @default(now())
 
-  store Store  @relation(fields: [storeId], references: [id], onDelete: Cascade)
-  sales Sale[]
+  store    Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  sales    Sale[]
+  comandas Comanda[]
 }
 
 // ─── VENDAS ──────────────────────────────────────────────────
@@ -204,6 +193,7 @@ model Sale {
   storeId       String
   userId        String
   customerId    String?
+  cashSessionId String?
   totalAmount   Float    @default(0)
   totalCost     Float    @default(0)
   cmvPct        Float    @default(0)
@@ -213,10 +203,11 @@ model Sale {
   notes         String?
   createdAt     DateTime @default(now())
 
-  store    Store      @relation(fields: [storeId], references: [id], onDelete: Cascade)
-  user     User       @relation(fields: [userId], references: [id])
-  customer Customer?  @relation(fields: [customerId], references: [id])
-  items    SaleItem[]
+  store       Store        @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  user        User         @relation(fields: [userId], references: [id])
+  customer    Customer?    @relation(fields: [customerId], references: [id])
+  cashSession CashSession? @relation(fields: [cashSessionId], references: [id])
+  items       SaleItem[]
 }
 
 // ─── ITENS DA VENDA ───────────────────────────────────────────
@@ -234,29 +225,67 @@ model SaleItem {
   product Product @relation(fields: [productId], references: [id])
 }
 
-// ─── PRODUÇÃO (LOTES) ─────────────────────────────────────────
-model Production {
-  id        String   @id @default(cuid())
-  storeId   String
-  userId    String
-  notes     String?
-  totalCost Float    @default(0)
-  createdAt DateTime @default(now())
+// ─── CAIXA (FECHAMENTO CEGO) ──────────────────────────────────
+model CashSession {
+  id            String    @id @default(cuid())
+  storeId       String
+  userId        String
+  openingAmount Float     @default(0) // fundo de troco
+  status        String    @default("aberta") // aberta | fechada
+  countedCash   Float? // valores contados no fechamento cego
+  countedPix    Float?
+  countedDebit  Float?
+  countedCredit Float?
+  notes         String?
+  openedAt      DateTime  @default(now())
+  closedAt      DateTime?
 
-  store Store           @relation(fields: [storeId], references: [id], onDelete: Cascade)
-  user  User            @relation(fields: [userId], references: [id])
-  items ProductionItem[]
+  store     Store          @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  user      User           @relation(fields: [userId], references: [id])
+  movements CashMovement[]
+  sales     Sale[]
 }
 
-model ProductionItem {
-  id           String @id @default(cuid())
-  productionId String
-  productId    String
-  qtyProduced  Float
-  unitCost     Float  @default(0)
+model CashMovement {
+  id        String   @id @default(cuid())
+  sessionId String
+  userId    String
+  type      String // sangria | suprimento
+  amount    Float
+  reason    String?
+  createdAt DateTime @default(now())
 
-  production Production @relation(fields: [productionId], references: [id], onDelete: Cascade)
-  product    Product    @relation(fields: [productId], references: [id])
+  session CashSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user    User        @relation(fields: [userId], references: [id])
+}
+
+// ─── COMANDAS ─────────────────────────────────────────────────
+model Comanda {
+  id         String    @id @default(cuid())
+  storeId    String
+  userId     String
+  customerId String?
+  label      String // identificação: nome, mesa, etc.
+  status     String    @default("aberta") // aberta | finalizada | cancelada
+  notes      String?
+  createdAt  DateTime  @default(now())
+  closedAt   DateTime?
+
+  store    Store         @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  user     User          @relation(fields: [userId], references: [id])
+  customer Customer?     @relation(fields: [customerId], references: [id])
+  items    ComandaItem[]
+}
+
+model ComandaItem {
+  id        String @id @default(cuid())
+  comandaId String
+  productId String
+  qty       Float
+  unitPrice Float
+
+  comanda Comanda @relation(fields: [comandaId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
 }
 
 // ─── DESPESAS ────────────────────────────────────────────────

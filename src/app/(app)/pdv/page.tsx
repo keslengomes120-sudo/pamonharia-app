@@ -21,12 +21,27 @@ export default function PDVPage() {
   const [loading, setLoading] = useState(false);
   const [change, setChange] = useState(0);
   const [cashReceived, setCashReceived] = useState("");
+  const [comandaId, setComandaId] = useState<string | null>(null);
+  const [comandaLabel, setComandaLabel] = useState("");
 
   useEffect(() => {
     fetch("/api/products?active=true")
       .then((r) => r.json())
       .then(setProducts);
+
+    const cid = new URLSearchParams(window.location.search).get("comanda");
+    if (cid) loadComanda(cid);
   }, []);
+
+  async function loadComanda(id: string) {
+    const c = await fetch(`/api/comandas/${id}`).then((r) => r.json());
+    if (!c?.id) return;
+    setComandaId(id);
+    setComandaLabel(c.label);
+    setCart(c.items.map((i: any) => ({
+      id: i.productId, name: i.product.name, salePrice: i.unitPrice, cost: 0, qty: i.qty,
+    })));
+  }
 
   function addToCart(product: Product) {
     setCart((prev) => {
@@ -65,6 +80,7 @@ export default function PDVPage() {
           items: cart.map((i) => ({ productId: i.id, qty: i.qty, unitPrice: i.salePrice })),
           paymentMethod: payment,
           discount,
+          comandaId,
         }),
       });
       if (!res.ok) throw new Error();
@@ -72,6 +88,11 @@ export default function PDVPage() {
       setCart([]);
       setDiscount(0);
       setCashReceived("");
+      if (comandaId) {
+        setComandaId(null);
+        setComandaLabel("");
+        window.history.replaceState({}, "", "/pdv");
+      }
     } catch {
       toast.error("Erro ao finalizar venda");
     } finally {
@@ -118,6 +139,11 @@ export default function PDVPage() {
       <div className="md:w-80 bg-white border-t md:border-t-0 md:border-l border-gray-100 flex flex-col">
         <div className="p-4 border-b border-gray-100">
           <h2 className="font-bold text-gray-900">🛒 Carrinho</h2>
+          {comandaId && (
+            <span className="text-xs px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 font-medium mt-1 inline-block">
+              📝 Comanda: {comandaLabel}
+            </span>
+          )}
         </div>
 
         {/* Itens */}

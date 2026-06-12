@@ -7,7 +7,7 @@ import { ThemeProvider } from "@/components/providers/ThemeProvider";
 const geist = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Pamonharia App",
+  title: "Crescer Estratégico",
   description: "Gestão completa para sua loja de pamonhas",
 };
 

@@ -1,15 +1,5 @@
 import { db } from "@/lib/db";
 
-export async function calcProductCost(productId: string): Promise<number> {
-  const items = await db.productIngredient.findMany({
-    where: { productId },
-    include: { ingredient: true },
-  });
-  return items.reduce((sum, item) => {
-    return sum + item.qtyPerUnit * item.ingredient.costPerUnit;
-  }, 0);
-}
-
 export async function calcCmvPeriod(
   storeId: string,
   from: Date,
