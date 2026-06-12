@@ -101,19 +101,19 @@ export default function PDVPage() {
   }
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-gray-50">
+    <div className="flex flex-col md:flex-row min-h-screen bg-muted">
       {/* Catálogo */}
       <div className="flex-1 p-4">
-        <h1 className="text-lg font-bold text-gray-900 mb-4">PDV — Ponto de Venda</h1>
+        <h1 className="text-lg font-bold text-foreground mb-4">PDV — Ponto de Venda</h1>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
           {products.map((p) => (
             <button
               key={p.id}
               onClick={() => addToCart(p)}
-              className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 text-left active:scale-95 transition-transform hover:border-orange-300 hover:shadow-md"
+              className="bg-card rounded-2xl p-4 shadow-sm border border-border text-left active:scale-95 transition-transform hover:border-primary hover:shadow-md"
             >
               <div className="text-3xl mb-2">🥟</div>
-              <p className="font-semibold text-gray-900 text-sm leading-tight">{p.name}</p>
+              <p className="font-semibold text-foreground text-sm leading-tight">{p.name}</p>
               {p.category && (
                 <span
                   className="text-[10px] px-1.5 py-0.5 rounded-full font-medium mt-1 inline-block"
@@ -122,25 +122,25 @@ export default function PDVPage() {
                   {p.category.name}
                 </span>
               )}
-              <p className="text-orange-600 font-bold mt-2">{formatCurrency(p.salePrice)}</p>
+              <p className="text-primary font-bold mt-2">{formatCurrency(p.salePrice)}</p>
             </button>
           ))}
         </div>
         {products.length === 0 && (
-          <div className="text-center py-16 text-gray-400">
+          <div className="text-center py-16 text-subtle">
             <p className="text-4xl mb-2">🥟</p>
             <p>Nenhum produto cadastrado</p>
-            <a href="/produtos" className="text-orange-500 text-sm underline mt-1 inline-block">Cadastrar produtos</a>
+            <a href="/produtos" className="text-primary text-sm underline mt-1 inline-block">Cadastrar produtos</a>
           </div>
         )}
       </div>
 
       {/* Carrinho */}
-      <div className="md:w-80 bg-white border-t md:border-t-0 md:border-l border-gray-100 flex flex-col">
-        <div className="p-4 border-b border-gray-100">
-          <h2 className="font-bold text-gray-900">🛒 Carrinho</h2>
+      <div className="md:w-80 bg-card border-t md:border-t-0 md:border-l border-border flex flex-col">
+        <div className="p-4 border-b border-border">
+          <h2 className="font-bold text-foreground">🛒 Carrinho</h2>
           {comandaId && (
-            <span className="text-xs px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 font-medium mt-1 inline-block">
+            <span className="text-xs px-2 py-0.5 rounded-full bg-primary-soft text-primary-soft-foreground font-medium mt-1 inline-block">
               📝 Comanda: {comandaLabel}
             </span>
           )}
@@ -149,26 +149,26 @@ export default function PDVPage() {
         {/* Itens */}
         <div className="flex-1 overflow-y-auto p-4 space-y-2">
           {cart.length === 0 ? (
-            <p className="text-center text-gray-300 py-8 text-sm">Toque nos produtos pra adicionar</p>
+            <p className="text-center text-subtle py-8 text-sm">Toque nos produtos pra adicionar</p>
           ) : (
             cart.map((item) => (
               <div key={item.id} className="flex items-center gap-2">
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-800">{item.name}</p>
-                  <p className="text-xs text-orange-600">{formatCurrency(item.salePrice)}</p>
+                  <p className="text-sm font-medium text-foreground">{item.name}</p>
+                  <p className="text-xs text-primary">{formatCurrency(item.salePrice)}</p>
                 </div>
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => updateQty(item.id, item.qty - 1)}
-                    className="w-7 h-7 rounded-lg bg-gray-100 text-gray-600 font-bold text-base flex items-center justify-center active:bg-gray-200"
+                    className="w-7 h-7 rounded-lg bg-muted text-muted-foreground font-bold text-base flex items-center justify-center active:bg-muted"
                   >−</button>
                   <span className="w-6 text-center text-sm font-semibold">{item.qty}</span>
                   <button
                     onClick={() => updateQty(item.id, item.qty + 1)}
-                    className="w-7 h-7 rounded-lg bg-orange-100 text-orange-700 font-bold text-base flex items-center justify-center active:bg-orange-200"
+                    className="w-7 h-7 rounded-lg bg-primary-soft text-primary-soft-foreground font-bold text-base flex items-center justify-center active:opacity-80"
                   >+</button>
                 </div>
-                <p className="text-sm font-semibold text-gray-700 w-16 text-right">
+                <p className="text-sm font-semibold text-foreground w-16 text-right">
                   {formatCurrency(item.salePrice * item.qty)}
                 </p>
               </div>
@@ -177,17 +177,17 @@ export default function PDVPage() {
         </div>
 
         {/* Pagamento e total */}
-        <div className="p-4 border-t border-gray-100 space-y-3">
+        <div className="p-4 border-t border-border space-y-3">
           {/* Desconto */}
           <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-500">Desconto R$</span>
+            <span className="text-xs text-muted-foreground">Desconto R$</span>
             <input
               type="number"
               min={0}
               value={discount || ""}
               onChange={(e) => setDiscount(Number(e.target.value) || 0)}
               placeholder="0,00"
-              className="flex-1 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-right"
+              className="flex-1 border border-border rounded-lg px-2 py-1.5 text-sm text-right"
             />
           </div>
 
@@ -200,8 +200,8 @@ export default function PDVPage() {
                 className={cn(
                   "flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border transition-colors",
                   payment === m.id
-                    ? "bg-orange-50 border-orange-400 text-orange-700"
-                    : "border-gray-200 text-gray-600"
+                    ? "bg-primary-soft border-primary text-primary-soft-foreground"
+                    : "border-border text-muted-foreground"
                 )}
               >
                 <span>{m.icon}</span> {m.label}
@@ -212,30 +212,30 @@ export default function PDVPage() {
           {/* Troco */}
           {payment === "dinheiro" && (
             <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500">Recebeu R$</span>
+              <span className="text-xs text-muted-foreground">Recebeu R$</span>
               <input
                 type="number"
                 value={cashReceived}
                 onChange={(e) => setCashReceived(e.target.value)}
                 placeholder="0,00"
-                className="flex-1 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-right"
+                className="flex-1 border border-border rounded-lg px-2 py-1.5 text-sm text-right"
               />
               {change > 0 && (
-                <span className="text-xs text-green-600 font-medium">Troco: {formatCurrency(change)}</span>
+                <span className="text-xs text-success font-medium">Troco: {formatCurrency(change)}</span>
               )}
             </div>
           )}
 
           {/* Total */}
           <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-500">Total</span>
-            <span className="text-2xl font-bold text-orange-600">{formatCurrency(total)}</span>
+            <span className="text-sm text-muted-foreground">Total</span>
+            <span className="text-2xl font-bold text-primary">{formatCurrency(total)}</span>
           </div>
 
           <button
             onClick={finalizeSale}
             disabled={loading || !cart.length}
-            className="w-full py-4 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 disabled:opacity-40 text-white font-bold rounded-2xl text-base transition-colors"
+            className="w-full py-4 bg-primary hover:bg-primary-hover active:bg-primary-hover disabled:opacity-40 text-white font-bold rounded-2xl text-base transition-colors"
           >
             {loading ? "Finalizando..." : "✅ Finalizar Venda"}
           </button>

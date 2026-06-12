@@ -52,38 +52,38 @@ export default function ConfiguracoesPage() {
     finally { setTesting(false); }
   }
 
-  if (!loaded) return <div className="p-6 text-gray-400">Carregando...</div>;
+  if (!loaded) return <div className="p-6 text-subtle">Carregando...</div>;
 
   return (
     <div className="p-4 md:p-6 max-w-2xl">
-      <h1 className="text-xl font-bold text-gray-900 mb-5">⚙️ Configurações</h1>
+      <h1 className="text-xl font-bold text-foreground mb-5">⚙️ Configurações</h1>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 divide-y divide-gray-50">
+      <div className="bg-card rounded-2xl shadow-sm border border-border divide-y divide-border">
         {/* Provedor */}
         <div className="p-5">
-          <h2 className="text-sm font-semibold text-gray-700 mb-3">🤖 Provedor de IA</h2>
+          <h2 className="text-sm font-semibold text-foreground mb-3">🤖 Provedor de IA</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {AI_PROVIDERS.map((p) => (
               <button key={p.id} onClick={() => setConfig({ ...config, provider: p.id, model: p.defaultModel })}
                 className={`flex flex-col items-center p-3 rounded-xl border text-xs font-medium transition-colors ${
                   config.provider === p.id
-                    ? "border-orange-400 bg-orange-50 text-orange-700"
-                    : "border-gray-200 text-gray-600 hover:border-gray-300"
+                    ? "border-primary bg-primary-soft text-primary-soft-foreground"
+                    : "border-border text-muted-foreground hover:border-border"
                 }`}>
                 <span className="text-2xl mb-1">{p.icon}</span>
                 <span>{p.label}</span>
-                {p.free && <span className="text-[10px] text-green-600 mt-0.5">Grátis</span>}
+                {p.free && <span className="text-[10px] text-success mt-0.5">Grátis</span>}
                 {p.local && <span className="text-[10px] text-blue-600 mt-0.5">Local</span>}
               </button>
             ))}
           </div>
 
           {selectedProvider && (
-            <div className="mt-3 bg-gray-50 rounded-xl px-3 py-2 text-xs text-gray-500">
+            <div className="mt-3 bg-muted rounded-xl px-3 py-2 text-xs text-muted-foreground">
               {selectedProvider.description}
               {selectedProvider.keyLink && (
                 <a href={selectedProvider.keyLink} target="_blank" rel="noopener noreferrer"
-                  className="ml-2 text-orange-500 underline">Obter chave →</a>
+                  className="ml-2 text-primary underline">Obter chave →</a>
               )}
             </div>
           )}
@@ -91,19 +91,19 @@ export default function ConfiguracoesPage() {
 
         {/* Modelo */}
         <div className="p-5">
-          <h2 className="text-sm font-semibold text-gray-700 mb-3">🧠 Modelo</h2>
+          <h2 className="text-sm font-semibold text-foreground mb-3">🧠 Modelo</h2>
           <div className="grid gap-2">
             {models.map((m) => (
               <button key={m.id} onClick={() => setConfig({ ...config, model: m.id })}
                 className={`flex justify-between items-center p-3 rounded-xl border text-sm transition-colors ${
-                  config.model === m.id ? "border-orange-400 bg-orange-50" : "border-gray-200 hover:border-gray-300"
+                  config.model === m.id ? "border-primary bg-primary-soft" : "border-border hover:border-border"
                 }`}>
                 <div className="text-left">
-                  <p className="font-medium text-gray-800">{m.label}</p>
-                  {m.description && <p className="text-xs text-gray-400 mt-0.5">{m.description}</p>}
+                  <p className="font-medium text-foreground">{m.label}</p>
+                  {m.description && <p className="text-xs text-subtle mt-0.5">{m.description}</p>}
                 </div>
-                <div className="text-right text-xs text-gray-400">
-                  {m.free ? <span className="text-green-600 font-medium">Grátis</span> : m.pricing}
+                <div className="text-right text-xs text-subtle">
+                  {m.free ? <span className="text-success font-medium">Grátis</span> : m.pricing}
                 </div>
               </button>
             ))}
@@ -114,21 +114,21 @@ export default function ConfiguracoesPage() {
         <div className="p-5">
           {config.provider === "ollama" ? (
             <>
-              <h2 className="text-sm font-semibold text-gray-700 mb-2">🌐 URL do Ollama</h2>
+              <h2 className="text-sm font-semibold text-foreground mb-2">🌐 URL do Ollama</h2>
               <input value={config.ollamaUrl}
                 onChange={(e) => setConfig({ ...config, ollamaUrl: e.target.value })}
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+                className="w-full px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 placeholder="http://localhost:11434" />
             </>
           ) : (
             <>
-              <h2 className="text-sm font-semibold text-gray-700 mb-2">🔑 Chave de API</h2>
+              <h2 className="text-sm font-semibold text-foreground mb-2">🔑 Chave de API</h2>
               <input type="password" value={config.apiKey ?? ""}
                 onChange={(e) => setConfig({ ...config, apiKey: e.target.value })}
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+                className="w-full px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 placeholder={selectedProvider?.keyPlaceholder ?? "sk-..."} />
               {config.apiKey?.startsWith("***") && (
-                <p className="text-xs text-gray-400 mt-1">Chave salva (oculta). Preencha novamente para alterar.</p>
+                <p className="text-xs text-subtle mt-1">Chave salva (oculta). Preencha novamente para alterar.</p>
               )}
             </>
           )}
@@ -136,12 +136,12 @@ export default function ConfiguracoesPage() {
 
         {/* Parâmetros */}
         <div className="p-5">
-          <h2 className="text-sm font-semibold text-gray-700 mb-3">🎛️ Parâmetros</h2>
+          <h2 className="text-sm font-semibold text-foreground mb-3">🎛️ Parâmetros</h2>
           <div className="space-y-4">
             <div>
               <div className="flex justify-between mb-1">
-                <label className="text-xs text-gray-600">Temperatura: <strong>{config.temperature}</strong></label>
-                <span className="text-xs text-gray-400">{config.temperature < 0.4 ? "Mais preciso" : config.temperature > 0.8 ? "Mais criativo" : "Equilibrado"}</span>
+                <label className="text-xs text-muted-foreground">Temperatura: <strong>{config.temperature}</strong></label>
+                <span className="text-xs text-subtle">{config.temperature < 0.4 ? "Mais preciso" : config.temperature > 0.8 ? "Mais criativo" : "Equilibrado"}</span>
               </div>
               <input type="range" min="0" max="1" step="0.1" value={config.temperature}
                 onChange={(e) => setConfig({ ...config, temperature: Number(e.target.value) })}
@@ -149,7 +149,7 @@ export default function ConfiguracoesPage() {
             </div>
             <div>
               <div className="flex justify-between mb-1">
-                <label className="text-xs text-gray-600">Máx. tokens: <strong>{config.maxTokens}</strong></label>
+                <label className="text-xs text-muted-foreground">Máx. tokens: <strong>{config.maxTokens}</strong></label>
               </div>
               <input type="range" min="256" max="4096" step="256" value={config.maxTokens}
                 onChange={(e) => setConfig({ ...config, maxTokens: Number(e.target.value) })}
@@ -161,11 +161,11 @@ export default function ConfiguracoesPage() {
         {/* Ações */}
         <div className="p-5 flex gap-3">
           <button onClick={test} disabled={testing}
-            className="flex-1 py-3 border border-orange-400 text-orange-600 rounded-xl text-sm font-semibold disabled:opacity-50 hover:bg-orange-50">
+            className="flex-1 py-3 border border-primary text-primary rounded-xl text-sm font-semibold disabled:opacity-50 hover:bg-primary-soft">
             {testing ? "Testando..." : "🧪 Testar IA"}
           </button>
           <button onClick={save} disabled={saving}
-            className="flex-1 py-3 bg-orange-500 text-white rounded-xl text-sm font-semibold disabled:opacity-50 hover:bg-orange-600">
+            className="flex-1 py-3 bg-primary text-white rounded-xl text-sm font-semibold disabled:opacity-50 hover:bg-primary-hover">
             {saving ? "Salvando..." : "💾 Salvar"}
           </button>
         </div>

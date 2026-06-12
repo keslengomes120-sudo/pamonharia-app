@@ -3,26 +3,101 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #f9fafb;
-  --foreground: #111827;
+  /* Surfaces */
+  --background: #faf7f2;
+  --card: #ffffff;
+  --muted: #f3eee5;
+  --border: #e9e2d6;
+
+  /* Text */
+  --foreground: #1c1814;
+  --muted-foreground: #6f6557;
+  --subtle: #a89e8e;
+
+  /* Brand — corn / orange */
+  --primary: #ea580c;
+  --primary-hover: #c2410c;
+  --primary-foreground: #ffffff;
+  --primary-soft: #fdeede;
+  --primary-soft-foreground: #9a3412;
+
+  /* Status */
+  --success: #16a34a;
+  --success-soft: #dcfce7;
+  --success-foreground: #15803d;
+  --warning: #d97706;
+  --warning-soft: #fef3c7;
+  --warning-foreground: #b45309;
+  --danger: #dc2626;
+  --danger-soft: #fee2e2;
+  --danger-foreground: #b91c1c;
+
+  --ring: #f59e0b;
 }
 
 .dark {
-  --background: #030712;
-  --foreground: #f9fafb;
+  --background: #17130f;
+  --card: #211b15;
+  --muted: #2c241c;
+  --border: #392f25;
+
+  --foreground: #f5efe6;
+  --muted-foreground: #b3a692;
+  --subtle: #7d7263;
+
+  --primary: #f97316;
+  --primary-hover: #fb923c;
+  --primary-foreground: #1a120b;
+  --primary-soft: #3a2415;
+  --primary-soft-foreground: #fdba74;
+
+  --success: #22c55e;
+  --success-soft: #13321f;
+  --success-foreground: #4ade80;
+  --warning: #f59e0b;
+  --warning-soft: #38280c;
+  --warning-foreground: #fbbf24;
+  --danger: #ef4444;
+  --danger-soft: #3a1414;
+  --danger-foreground: #f87171;
+
+  --ring: #f59e0b;
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-card: var(--card);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
   --color-foreground: var(--foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-subtle: var(--subtle);
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-soft-foreground: var(--primary-soft-foreground);
+
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-danger-foreground: var(--danger-foreground);
+
+  --color-ring: var(--ring);
+
   --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
 
 /* Mobile PDV touch */

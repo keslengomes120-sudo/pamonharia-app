@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Crescer Estratégico
 
-## Getting Started
+PDV + gestão para pamonharia/loja de comida. Sistema **em uso real** (dados de produção no Turso).
 
-First, run the development server:
+> O repositório/pacote ainda se chama `pamonharia-app`; o produto é **Crescer Estratégico**.
+
+## Funcionalidades
+
+- **PDV** — frente de caixa, baixa estoque automática, carrega comanda via `?comanda=<id>`.
+- **Comandas** — pedidos abertos por mesa/cliente; enviam para o caixa.
+- **Caixa** — abertura, sangria/suprimento e fechamento cego.
+- **Produtos** — revenda ou fabricação própria (ficha técnica → custo), precificação por markup.
+- **Categorias, Estoque, CMV, Financeiro, Produção, Clientes, Usuários, Configurações.**
+- **IA** — assistente de negócio com contexto da loja (provider configurável).
+
+## Stack
+
+Next.js 16 (App Router) · React 19 · TypeScript strict · Prisma 7 (LibSQL/Turso) · NextAuth 5 · Tailwind CSS 4 · Radix UI · Recharts · Lucide · Vercel AI SDK.
+
+## Rodando localmente
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npx prisma migrate dev      # aplica migrações no dev.db local
+npx prisma db seed          # dados demo
+npm run dev                 # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Login demo (seed): `admin@pamonharia.com` / `admin123`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Comandos
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build    # prisma generate && next build  (portão principal: type-check estrito)
+npm run lint
+npm run start    # produção local
 
-## Learn More
+npx prisma migrate dev --name <nome>   # cria + aplica migração no dev
+npx prisma studio                      # inspecionar o banco
+```
 
-To learn more about Next.js, take a look at the following resources:
+## UI / Design system
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Cores via **tokens semânticos** em `src/app/globals.css` (claro/escuro) — dark mode é automático, não use `gray-*`/`orange-*` direto. Componentes reutilizáveis em `src/components/ui/`. Ícones com `lucide-react`. App é um **PWA instalável**. Detalhes em [`AGENTS.md`](./AGENTS.md).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Deploy
 
-## Deploy on Vercel
+Produção em **Vercel + Turso** (auto-deploy no push para `main`). URL pública: https://pamonharia-app-ten.vercel.app
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+⚠️ **Migrations não rodam no build.** Após `prisma migrate dev`, aplique cada uma no Turso manualmente:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+turso db shell pamonharia < prisma/migrations/<nome>/migration.sql
+```
+
+Veja [`AGENTS.md`](./AGENTS.md) para arquitetura, convenções e detalhes de deploy.

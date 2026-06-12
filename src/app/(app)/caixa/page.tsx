@@ -102,29 +102,29 @@ export default function CaixaPage() {
 
   return (
     <div className="p-4 md:p-6 max-w-2xl mx-auto">
-      <h1 className="text-xl font-bold text-gray-900 mb-5">🧾 Caixa</h1>
+      <h1 className="text-xl font-bold text-foreground mb-5">🧾 Caixa</h1>
 
       {/* Resultado da conferência (após fechar) */}
       {result && (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-5">
-          <h2 className="font-bold text-gray-900 mb-3">Conferência do fechamento</h2>
+        <div className="bg-card rounded-2xl shadow-sm border border-border p-5 mb-5">
+          <h2 className="font-bold text-foreground mb-3">Conferência do fechamento</h2>
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-xs text-gray-400 uppercase">
+              <tr className="text-xs text-subtle uppercase">
                 <th className="text-left pb-2">Método</th>
                 <th className="text-right pb-2">Esperado</th>
                 <th className="text-right pb-2">Contado</th>
                 <th className="text-right pb-2">Diferença</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-border">
               {result.methods.map((m) => (
                 <tr key={m.key}>
-                  <td className="py-2 text-gray-700">{m.label}</td>
-                  <td className="py-2 text-right text-gray-600">{formatCurrency(m.expected)}</td>
-                  <td className="py-2 text-right text-gray-600">{formatCurrency(m.counted)}</td>
+                  <td className="py-2 text-foreground">{m.label}</td>
+                  <td className="py-2 text-right text-muted-foreground">{formatCurrency(m.expected)}</td>
+                  <td className="py-2 text-right text-muted-foreground">{formatCurrency(m.counted)}</td>
                   <td className={cn("py-2 text-right font-semibold",
-                    m.diff === 0 ? "text-green-600" : Math.abs(m.diff) < 0.01 ? "text-green-600" : m.diff > 0 ? "text-amber-600" : "text-red-600")}>
+                    m.diff === 0 ? "text-success" : Math.abs(m.diff) < 0.01 ? "text-success" : m.diff > 0 ? "text-warning" : "text-danger")}>
                     {m.diff > 0 ? "+" : ""}{formatCurrency(m.diff)}
                   </td>
                 </tr>
@@ -132,30 +132,30 @@ export default function CaixaPage() {
             </tbody>
           </table>
           <div className={cn("mt-3 px-3 py-2 rounded-xl text-sm font-semibold flex justify-between",
-            Math.abs(result.totalDiff) < 0.01 ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700")}>
+            Math.abs(result.totalDiff) < 0.01 ? "bg-success-soft text-success-foreground" : "bg-danger-soft text-danger-foreground")}>
             <span>{Math.abs(result.totalDiff) < 0.01 ? "✅ Caixa bateu certo" : "⚠️ Diferença total"}</span>
             <span>{result.totalDiff > 0 ? "+" : ""}{formatCurrency(result.totalDiff)}</span>
           </div>
-          <button onClick={() => setResult(null)} className="mt-3 text-xs text-orange-500 hover:underline">Fechar</button>
+          <button onClick={() => setResult(null)} className="mt-3 text-xs text-primary hover:underline">Fechar</button>
         </div>
       )}
 
       {!session ? (
         /* Caixa fechado — abrir */
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-          <p className="text-gray-500 text-sm mb-4">Nenhum caixa aberto. Informe o fundo de troco para abrir.</p>
-          <label className="text-xs font-medium text-gray-600">Fundo de troco (R$)</label>
+        <div className="bg-card rounded-2xl shadow-sm border border-border p-5">
+          <p className="text-muted-foreground text-sm mb-4">Nenhum caixa aberto. Informe o fundo de troco para abrir.</p>
+          <label className="text-xs font-medium text-muted-foreground">Fundo de troco (R$)</label>
           <input
             type="number" step="0.01" min="0"
             value={openingAmount}
             onChange={(e) => setOpeningAmount(e.target.value)}
             placeholder="0,00"
-            className="w-full mt-1 mb-4 px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+            className="w-full mt-1 mb-4 px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           />
           <button
             onClick={openCash}
             disabled={busy}
-            className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-sm font-semibold disabled:opacity-50"
+            className="w-full py-3 bg-primary hover:bg-primary-hover text-white rounded-xl text-sm font-semibold disabled:opacity-50"
           >
             Abrir caixa
           </button>
@@ -163,50 +163,50 @@ export default function CaixaPage() {
       ) : (
         /* Caixa aberto */
         <div className="space-y-5">
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+          <div className="bg-card rounded-2xl shadow-sm border border-border p-5">
             <div className="flex items-center justify-between mb-3">
-              <span className="px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-semibold">Aberto</span>
-              <span className="text-xs text-gray-400">desde {formatDateTime(session.openedAt)}</span>
+              <span className="px-2 py-0.5 rounded-full bg-success-soft text-success-foreground text-xs font-semibold">Aberto</span>
+              <span className="text-xs text-subtle">desde {formatDateTime(session.openedAt)}</span>
             </div>
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div>
-                <p className="text-xs text-gray-400">Fundo de troco</p>
-                <p className="font-semibold text-gray-800">{formatCurrency(session.openingAmount)}</p>
+                <p className="text-xs text-subtle">Fundo de troco</p>
+                <p className="font-semibold text-foreground">{formatCurrency(session.openingAmount)}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-400">Vendas no caixa</p>
-                <p className="font-semibold text-gray-800">{salesCount}</p>
+                <p className="text-xs text-subtle">Vendas no caixa</p>
+                <p className="font-semibold text-foreground">{salesCount}</p>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2 mt-4">
-              <button onClick={() => setMovModal("sangria")} className="py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50">
+              <button onClick={() => setMovModal("sangria")} className="py-2.5 border border-border rounded-xl text-sm font-medium text-foreground hover:bg-muted">
                 ➖ Sangria
               </button>
-              <button onClick={() => setMovModal("suprimento")} className="py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50">
+              <button onClick={() => setMovModal("suprimento")} className="py-2.5 border border-border rounded-xl text-sm font-medium text-foreground hover:bg-muted">
                 ➕ Suprimento
               </button>
             </div>
             <button
               onClick={() => setCloseModal(true)}
-              className="w-full mt-2 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-sm font-semibold"
+              className="w-full mt-2 py-3 bg-primary hover:bg-primary-hover text-white rounded-xl text-sm font-semibold"
             >
               Fechar caixa
             </button>
           </div>
 
           {movements.length > 0 && (
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-              <h2 className="font-bold text-gray-900 text-sm mb-3">Movimentações</h2>
+            <div className="bg-card rounded-2xl shadow-sm border border-border p-5">
+              <h2 className="font-bold text-foreground text-sm mb-3">Movimentações</h2>
               <div className="space-y-2">
                 {movements.map((m) => (
                   <div key={m.id} className="flex justify-between items-center text-sm">
                     <div>
-                      <span className={cn("font-medium", m.type === "sangria" ? "text-red-600" : "text-green-600")}>
+                      <span className={cn("font-medium", m.type === "sangria" ? "text-danger" : "text-success")}>
                         {m.type === "sangria" ? "➖ Sangria" : "➕ Suprimento"}
                       </span>
-                      {m.reason && <span className="text-gray-400 text-xs ml-2">{m.reason}</span>}
+                      {m.reason && <span className="text-subtle text-xs ml-2">{m.reason}</span>}
                     </div>
-                    <span className="font-semibold text-gray-700">{formatCurrency(m.amount)}</span>
+                    <span className="font-semibold text-foreground">{formatCurrency(m.amount)}</span>
                   </div>
                 ))}
               </div>
@@ -218,25 +218,25 @@ export default function CaixaPage() {
       {/* Modal sangria/suprimento */}
       {movModal && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-end md:items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-sm p-5">
-            <h2 className="font-bold text-gray-900 mb-4">{movModal === "sangria" ? "➖ Sangria" : "➕ Suprimento"}</h2>
-            <label className="text-xs font-medium text-gray-600">Valor (R$)</label>
+          <div className="bg-card rounded-2xl w-full max-w-sm p-5">
+            <h2 className="font-bold text-foreground mb-4">{movModal === "sangria" ? "➖ Sangria" : "➕ Suprimento"}</h2>
+            <label className="text-xs font-medium text-muted-foreground">Valor (R$)</label>
             <input
               type="number" step="0.01" min="0" autoFocus
               value={movAmount}
               onChange={(e) => setMovAmount(e.target.value)}
-              className="w-full mt-1 mb-3 px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+              className="w-full mt-1 mb-3 px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             />
-            <label className="text-xs font-medium text-gray-600">Motivo (opcional)</label>
+            <label className="text-xs font-medium text-muted-foreground">Motivo (opcional)</label>
             <input
               value={movReason}
               onChange={(e) => setMovReason(e.target.value)}
               placeholder={movModal === "sangria" ? "Ex: troco, pagamento fornecedor" : "Ex: reforço de troco"}
-              className="w-full mt-1 mb-4 px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+              className="w-full mt-1 mb-4 px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             />
             <div className="flex gap-3">
-              <button onClick={() => setMovModal(null)} className="flex-1 py-3 border border-gray-200 rounded-xl text-sm text-gray-600">Cancelar</button>
-              <button onClick={saveMovement} disabled={busy} className="flex-1 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-sm font-semibold disabled:opacity-50">Registrar</button>
+              <button onClick={() => setMovModal(null)} className="flex-1 py-3 border border-border rounded-xl text-sm text-muted-foreground">Cancelar</button>
+              <button onClick={saveMovement} disabled={busy} className="flex-1 py-3 bg-primary hover:bg-primary-hover text-white rounded-xl text-sm font-semibold disabled:opacity-50">Registrar</button>
             </div>
           </div>
         </div>
@@ -245,30 +245,30 @@ export default function CaixaPage() {
       {/* Modal fechamento cego */}
       {closeModal && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-end md:items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-sm p-5 max-h-[90vh] overflow-y-auto">
-            <h2 className="font-bold text-gray-900 mb-1">Fechamento cego</h2>
-            <p className="text-xs text-gray-400 mb-4">Conte e informe os valores. O sistema confere com o registrado.</p>
+          <div className="bg-card rounded-2xl w-full max-w-sm p-5 max-h-[90vh] overflow-y-auto">
+            <h2 className="font-bold text-foreground mb-1">Fechamento cego</h2>
+            <p className="text-xs text-subtle mb-4">Conte e informe os valores. O sistema confere com o registrado.</p>
             {COUNT_FIELDS.map((f) => (
               <div key={f.key} className="mb-3">
-                <label className="text-xs font-medium text-gray-600">{f.label}</label>
+                <label className="text-xs font-medium text-muted-foreground">{f.label}</label>
                 <input
                   type="number" step="0.01" min="0"
                   value={counts[f.key] ?? ""}
                   onChange={(e) => setCounts({ ...counts, [f.key]: e.target.value })}
                   placeholder="0,00"
-                  className="w-full mt-1 px-3 py-2.5 border border-gray-200 rounded-xl text-sm text-right focus:outline-none focus:ring-2 focus:ring-orange-400"
+                  className="w-full mt-1 px-3 py-2.5 border border-border rounded-xl text-sm text-right focus:outline-none focus:ring-2 focus:ring-ring"
                 />
               </div>
             ))}
-            <label className="text-xs font-medium text-gray-600">Observações (opcional)</label>
+            <label className="text-xs font-medium text-muted-foreground">Observações (opcional)</label>
             <input
               value={closeNotes}
               onChange={(e) => setCloseNotes(e.target.value)}
-              className="w-full mt-1 mb-4 px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+              className="w-full mt-1 mb-4 px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             />
             <div className="flex gap-3">
-              <button onClick={() => setCloseModal(false)} className="flex-1 py-3 border border-gray-200 rounded-xl text-sm text-gray-600">Cancelar</button>
-              <button onClick={closeCash} disabled={busy} className="flex-1 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-sm font-semibold disabled:opacity-50">Conferir e fechar</button>
+              <button onClick={() => setCloseModal(false)} className="flex-1 py-3 border border-border rounded-xl text-sm text-muted-foreground">Cancelar</button>
+              <button onClick={closeCash} disabled={busy} className="flex-1 py-3 bg-primary hover:bg-primary-hover text-white rounded-xl text-sm font-semibold disabled:opacity-50">Conferir e fechar</button>
             </div>
           </div>
         </div>

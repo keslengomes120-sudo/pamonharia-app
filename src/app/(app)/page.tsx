@@ -77,7 +77,7 @@ export default async function DashboardPage() {
   if (!storeId) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <p className="text-gray-500">Nenhuma loja configurada. Contate o administrador.</p>
+        <p className="text-muted-foreground">Nenhuma loja configurada. Contate o administrador.</p>
       </div>
     );
   }

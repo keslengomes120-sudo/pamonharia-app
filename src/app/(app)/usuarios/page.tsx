@@ -60,39 +60,39 @@ export default function UsuariosPage() {
     <div className="p-4 md:p-6 max-w-2xl">
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">🧑‍💼 Usuários</h1>
-          <p className="text-xs text-gray-400 mt-0.5">Gerencie quem tem acesso ao sistema</p>
+          <h1 className="text-xl font-bold text-foreground">🧑‍💼 Usuários</h1>
+          <p className="text-xs text-subtle mt-0.5">Gerencie quem tem acesso ao sistema</p>
         </div>
         <button onClick={openNew}
-          className="px-4 py-2 bg-orange-500 text-white rounded-xl text-sm font-semibold hover:bg-orange-600">
+          className="px-4 py-2 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-primary-hover">
           + Novo
         </button>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 divide-y divide-gray-50">
+      <div className="bg-card rounded-2xl shadow-sm border border-border divide-y divide-border">
         {users.length === 0 ? (
-          <div className="py-12 text-center text-gray-300">Nenhum usuário</div>
+          <div className="py-12 text-center text-subtle">Nenhum usuário</div>
         ) : users.map((u) => (
           <div key={u.id} className={cn("flex items-center gap-3 px-5 py-4", !u.active && "opacity-50")}>
             <div className={cn(
               "w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0",
-              u.role === "admin" ? "bg-orange-100 text-orange-700" : "bg-gray-100 text-gray-600"
+              u.role === "admin" ? "bg-primary-soft text-primary-soft-foreground" : "bg-muted text-muted-foreground"
             )}>
               {u.name[0].toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-medium text-gray-900 text-sm">{u.name}</p>
-              <p className="text-xs text-gray-400">{u.email}</p>
+              <p className="font-medium text-foreground text-sm">{u.name}</p>
+              <p className="text-xs text-subtle">{u.email}</p>
             </div>
             <span className={cn(
               "text-xs px-2 py-0.5 rounded-full font-medium",
-              u.role === "admin" ? "bg-orange-100 text-orange-700" : "bg-gray-100 text-gray-600"
+              u.role === "admin" ? "bg-primary-soft text-primary-soft-foreground" : "bg-muted text-muted-foreground"
             )}>
               {u.role === "admin" ? "Admin" : "Operador"}
             </span>
-            <button onClick={() => setEditing(u)} className="text-xs text-orange-500 hover:underline px-1">Editar</button>
+            <button onClick={() => setEditing(u)} className="text-xs text-primary hover:underline px-1">Editar</button>
             <button onClick={() => toggleActive(u)}
-              className={cn("text-xs px-1", u.active ? "text-gray-400 hover:text-red-500" : "text-green-500 hover:text-green-700")}>
+              className={cn("text-xs px-1", u.active ? "text-subtle hover:text-danger" : "text-success hover:text-success-foreground")}>
               {u.active ? "Desativar" : "Ativar"}
             </button>
           </div>
@@ -101,56 +101,56 @@ export default function UsuariosPage() {
 
       {editing !== null && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-sm">
-            <div className="p-5 border-b border-gray-100 flex justify-between">
-              <h2 className="font-bold text-gray-900">{editing.id ? "Editar Usuário" : "Novo Usuário"}</h2>
-              <button onClick={() => setEditing(null)} className="text-gray-400">✕</button>
+          <div className="bg-card rounded-2xl w-full max-w-sm">
+            <div className="p-5 border-b border-border flex justify-between">
+              <h2 className="font-bold text-foreground">{editing.id ? "Editar Usuário" : "Novo Usuário"}</h2>
+              <button onClick={() => setEditing(null)} className="text-subtle">✕</button>
             </div>
             <div className="p-5 space-y-3">
               <div>
-                <label className="text-xs font-medium text-gray-600">Nome *</label>
+                <label className="text-xs font-medium text-muted-foreground">Nome *</label>
                 <input value={editing.name ?? ""}
                   onChange={(e) => setEditing({ ...editing, name: e.target.value })}
-                  className="w-full mt-1 px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-400" />
+                  className="w-full mt-1 px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
               </div>
               {!editing.id && (
                 <div>
-                  <label className="text-xs font-medium text-gray-600">Email *</label>
+                  <label className="text-xs font-medium text-muted-foreground">Email *</label>
                   <input type="email" value={editing.email ?? ""}
                     onChange={(e) => setEditing({ ...editing, email: e.target.value })}
-                    className="w-full mt-1 px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-400" />
+                    className="w-full mt-1 px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
                 </div>
               )}
               <div>
-                <label className="text-xs font-medium text-gray-600">
+                <label className="text-xs font-medium text-muted-foreground">
                   {editing.id ? "Nova senha (deixe em branco pra manter)" : "Senha *"}
                 </label>
                 <input type="password" value={(editing as any).password ?? ""}
                   onChange={(e) => setEditing({ ...editing, password: e.target.value })}
-                  className="w-full mt-1 px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+                  className="w-full mt-1 px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                   placeholder="••••••••" />
               </div>
               <div>
-                <label className="text-xs font-medium text-gray-600 block mb-2">Permissão</label>
+                <label className="text-xs font-medium text-muted-foreground block mb-2">Permissão</label>
                 <div className="grid grid-cols-2 gap-2">
                   {ROLES.map((r) => (
                     <button key={r.id} onClick={() => setEditing({ ...editing, role: r.id })}
                       className={cn(
                         "p-3 rounded-xl border text-left transition-colors",
-                        editing.role === r.id ? "border-orange-400 bg-orange-50" : "border-gray-200 hover:border-gray-300"
+                        editing.role === r.id ? "border-primary bg-primary-soft" : "border-border hover:border-border"
                       )}>
-                      <p className="text-sm font-medium text-gray-900">{r.label}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">{r.desc}</p>
+                      <p className="text-sm font-medium text-foreground">{r.label}</p>
+                      <p className="text-xs text-subtle mt-0.5">{r.desc}</p>
                     </button>
                   ))}
                 </div>
               </div>
             </div>
-            <div className="p-5 border-t border-gray-100 flex gap-3">
+            <div className="p-5 border-t border-border flex gap-3">
               <button onClick={() => setEditing(null)}
-                className="flex-1 py-3 border border-gray-200 rounded-xl text-sm text-gray-600">Cancelar</button>
+                className="flex-1 py-3 border border-border rounded-xl text-sm text-muted-foreground">Cancelar</button>
               <button onClick={save} disabled={saving}
-                className="flex-1 py-3 bg-orange-500 text-white rounded-xl text-sm font-semibold disabled:opacity-50">
+                className="flex-1 py-3 bg-primary text-white rounded-xl text-sm font-semibold disabled:opacity-50">
                 {saving ? "Salvando..." : "Salvar"}
               </button>
             </div>

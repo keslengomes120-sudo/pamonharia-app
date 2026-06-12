@@ -53,6 +53,22 @@ Login demo (seed): `admin@pamonharia.com` / `admin123`.
 - **lib/**: `auth.ts` (config NextAuth), `db.ts` (Prisma singleton + adapter LibSQL), `utils.ts` (formatação pt-BR, datas, `cn`), `cmv.ts` (custo de produto, CMV por período/produto), `ai.ts` (init do modelo, contexto da loja, `askAi`), `ai-providers.ts` (catálogo de providers/modelos).
 - **Estrutura de pastas é por responsabilidade.** Componentes em `src/components/{layout,dashboard,providers}`. Não crie pastas vazias "para depois".
 
+## Design system (UI)
+
+A interface usa **tokens de cor semânticos**, não cores cruas. Isso faz o **dark mode funcionar automaticamente** — não escreva `dark:` à mão nas páginas.
+
+- **Tokens** ficam em `src/app/globals.css`: variáveis CSS em `:root` (claro) e `.dark` (escuro), expostas como utilitários Tailwind via `@theme inline`. Paleta de marca: milho/laranja quente.
+- **Use os utilitários de token**, nunca `gray-*`/`orange-*` direto:
+  - Superfícies: `bg-background` (página), `bg-card` (cartões), `bg-muted` (preenchimento sutil), `border-border`.
+  - Texto: `text-foreground`, `text-muted-foreground`, `text-subtle`.
+  - Marca: `bg-primary` / `hover:bg-primary-hover` / `text-primary-foreground`; tom suave `bg-primary-soft` / `text-primary-soft-foreground`; foco `ring-ring`.
+  - Status: `*-success`, `*-warning`, `*-danger` (cada um com `-soft` e `-foreground`).
+- **Componentes UI** reutilizáveis em `src/components/ui/` (`Button` com variantes via `cva`, `Input`, `Card`). Prefira-os a remontar classes inline.
+- **Ícones:** `lucide-react` (componentes), não emojis. A navegação (`src/components/layout/nav.ts`) referencia componentes `LucideIcon`.
+- **PWA:** `src/app/manifest.ts` + `public/icon.svg` (favicon em `src/app/icon.svg`). `themeColor` claro/escuro e viewport em `src/app/layout.tsx`. App é instalável.
+
+Ao criar/editar UI: derive cores dos tokens. Se precisar de uma cor nova, adicione um token em `globals.css` (claro + escuro) em vez de hardcodar — senão o dark mode quebra.
+
 ## Banco de dados (cuidado — produto em uso)
 
 - Sempre que mexer no `schema.prisma`: `npx prisma migrate dev --name <descritivo>` e confira o SQL gerado em `prisma/migrations/` **antes** de considerar pronto.
